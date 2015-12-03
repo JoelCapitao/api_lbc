@@ -8,6 +8,7 @@ import bs4 as BeautifulSoup
 import re
 import time
 import datetime
+from matplotlib import pyplot as plt
 
 username = sys.argv[1]
 password = sys.argv[2]
@@ -77,3 +78,4 @@ for i in range(len(objects)):
         print '%s;%s;%s' % (objects[i]['title'], objects[i]['price'], objects[i]['mails'])
     else:
         print '%s' % objects[i]['mails']
+
