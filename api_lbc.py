@@ -1,81 +1,91 @@
 #!/usr/bin/python2.7
 #-*- coding: utf-8 -*-
+""" Ce script permet de recuperer les informations
+du site lbc """
 
-import sys
-from pdb import set_trace as st
-import subprocess
+# from pdb import set_trace as st
+from datetime import datetime
+from time import time
+from subprocess import Popen, PIPE
+from sys import argv
+from os import remove
 import bs4 as BeautifulSoup
-import re
-import time
-import datetime
-from matplotlib import pyplot as plt
 
-username = sys.argv[1]
-password = sys.argv[2]
-force_header = sys.argv[3]
-cookie_jar = './cookie_api_lbc.jar'
+USERNAME = argv[1]
+PASSWORD = argv[2]
+if argv[3] is None:
+    FORCE_HEADER = 'True'
+else:
+    FORCE_HEADER = argv[3]
 
-ts = time.time()
-timestamp = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+TMP_PAGE_FILE = './tmp_page.html'
 
-page_filename = './page.html'
+TIME_NOW = time()
+TIMESTAMP = datetime.fromtimestamp(TIME_NOW).strftime('%Y%m%d%H%M%S')
 
-popen = subprocess.Popen(('./page_gen.sh', username, password, page_filename), stdout=subprocess.PIPE)
-popen.wait()
+POPEN = Popen(('./page_gen.sh', USERNAME, PASSWORD, TMP_PAGE_FILE), stdout=PIPE)
+POPEN.wait()
 
-f = open('./page.html', 'r')
-soup = BeautifulSoup.BeautifulSoup(f.read(), 'lxml')
-f.close()
+TMP_PAGE = open(TMP_PAGE_FILE, 'r')
+SOUP = BeautifulSoup.BeautifulSoup(TMP_PAGE.read(), 'lxml')
+TMP_PAGE.close()
 
-objects = {}
-for i, title in enumerate(soup.find_all('div', 'title')):
+OBJECTS = {}
+for i, title in enumerate(SOUP.find_all('div', 'title')):
     o = {}
     o['title'] = str(title.a.contents[0].encode('utf-8').decode('ascii', 'ignore'))
-    objects[i] = o
+    o['price'] = -1
+    o['vues'] = -1
+    o['mails'] = -1
+    o['clics'] = -1
+    OBJECTS[i] = o
 
-for i, price in enumerate(soup.find_all('div', 'price')):
-    objects[i]['price'] = int(price.contents[0].encode('utf-8').replace(' \xe2\x82\xac', ''))
+for i, price in enumerate(SOUP.find_all('div', 'price')):
+    OBJECTS[i]['price'] = int(price.contents[0].encode('utf-8').replace(' \xe2\x82\xac', ''))
 
-for i in range(len(objects)):
-    objects[i]['vues'] = int(soup('span', 'square')[i*3].contents[0])
-    objects[i]['mails'] = int(soup('span', 'square')[i*3+1].contents[0])
-    objects[i]['clics'] = int(soup('span', 'square')[i*3+2].contents[0])
+for i, obj in enumerate(OBJECTS):
+    OBJECTS[i]['vues'] = int(SOUP('span', 'square')[i*3].contents[0])
+    OBJECTS[i]['mails'] = int(SOUP('span', 'square')[i*3+1].contents[0])
+    OBJECTS[i]['clics'] = int(SOUP('span', 'square')[i*3+2].contents[0])
 
 
 # VUES
-if force_header == 'True':
-    print 'nom;prix;%s' % timestamp
+if FORCE_HEADER == 'True':
+    print 'nom;prix;%s' % TIMESTAMP
 else:
-    print timestamp
-for i in range(len(objects)):
-    if force_header == 'True':
-        print '%s;%s;%s' % (objects[i]['title'], objects[i]['price'], objects[i]['vues'])
+    print TIMESTAMP
+for i, obj in enumerate(OBJECTS):
+    if FORCE_HEADER == 'True':
+        print '%s;%s;%s' % (OBJECTS[i]['title'], OBJECTS[i]['price'], OBJECTS[i]['vues'])
     else:
-        print '%s' % objects[i]['vues']
+        print '%s' % OBJECTS[i]['vues']
 
 print ''
 
 # CLICS
-if force_header == 'True':
-    print 'nom;prix;%s' % timestamp
+if FORCE_HEADER == 'True':
+    print 'nom;prix;%s' % TIMESTAMP
 else:
-    print timestamp
-for i in range(len(objects)):
-    if force_header == 'True':
-        print '%s;%s;%s' % (objects[i]['title'], objects[i]['price'], objects[i]['clics'])
+    print TIMESTAMP
+for i, obj in enumerate(OBJECTS):
+    if FORCE_HEADER == 'True':
+        print '%s;%s;%s' % (OBJECTS[i]['title'], OBJECTS[i]['price'], OBJECTS[i]['clics'])
     else:
-        print '%s' % objects[i]['clics']
+        print '%s' % OBJECTS[i]['clics']
 
 print ''
 
 # MAILS
-if force_header == 'True':
-    print 'nom;prix;%s' % timestamp
+if FORCE_HEADER == 'True':
+    print 'nom;prix;%s' % TIMESTAMP
 else:
-    print timestamp
-for i in range(len(objects)):
-    if force_header == 'True':
-        print '%s;%s;%s' % (objects[i]['title'], objects[i]['price'], objects[i]['mails'])
+    print TIMESTAMP
+for i, obj in enumerate(OBJECTS):
+    if FORCE_HEADER == 'True':
+        print '%s;%s;%s' % (OBJECTS[i]['title'], OBJECTS[i]['price'], OBJECTS[i]['mails'])
     else:
-        print '%s' % objects[i]['mails']
+        print '%s' % OBJECTS[i]['mails']
 
+
+# Nettoyage
+remove(TMP_PAGE_FILE)

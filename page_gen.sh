@@ -9,4 +9,4 @@ if [ ! -f ${COOKIE_JAR} ]; then
 ./cookie_gen.sh ${USERNAME} ${PASSWORD}
 fi
 
-curl -k -s -L -b ${COOKIE_JAR} "https://compteperso.leboncoin.fr/account/index.html?ca=12_s" > ${PAGE_FILENAME}
+curl -ksL -b ${COOKIE_JAR} "https://compteperso.leboncoin.fr/account/index.html?ca=12_s" > ${PAGE_FILENAME}
