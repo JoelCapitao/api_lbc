@@ -31,7 +31,7 @@ TIMESTAMP = datetime.fromtimestamp(TIME_NOW).strftime('%Y%m%d%H%M%S')
 if not path.isfile(COOKIE_JAR_FILE):
     print 'Veuillez entrer votre mot de passe : '
 
-POPEN = Popen(('./page_gen.sh', USERNAME, TMP_PAGE_FILE, COOKIE_JAR_FILE), stdout=PIPE)
+POPEN = Popen(('./utils/page_gen.sh', USERNAME, TMP_PAGE_FILE, COOKIE_JAR_FILE), stdout=PIPE)
 POPEN.wait()
 
 TMP_PAGE = open(TMP_PAGE_FILE, 'r')
