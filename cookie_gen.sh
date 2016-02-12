@@ -1,8 +1,8 @@
 #!/bin/bash
+read -s PASSWORD
 
 USERNAME=$1
-PASSWORD=$2
-COOKIE_JAR='./cookie_api_lbc.jar'
+COOKIE_JAR=$2
 
 function cookie_gen() {
 # Génération du cookie

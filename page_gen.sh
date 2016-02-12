@@ -1,12 +1,11 @@
 #!/bin/bash
 
 USERNAME=$1
-PASSWORD=$2
-PAGE_FILENAME=$3
-COOKIE_JAR='./cookie_api_lbc.jar'
+TMP_PAGE_FILE=$2
+COOKIE_JAR_FILE=$3
 
-if [ ! -f ${COOKIE_JAR} ]; then
-./cookie_gen.sh ${USERNAME} ${PASSWORD}
+if [ ! -f ${COOKIE_JAR_FILE} ]; then
+./cookie_gen.sh ${USERNAME} ${COOKIE_JAR_FILE}
 fi
 
-curl -ksL -b ${COOKIE_JAR} "https://compteperso.leboncoin.fr/account/index.html?ca=12_s" > ${PAGE_FILENAME}
+curl -ksL -b ${COOKIE_JAR_FILE} "https://compteperso.leboncoin.fr/account/index.html?ca=12_s" > ${TMP_PAGE_FILE}

@@ -8,22 +8,30 @@ from datetime import datetime
 from time import time
 from subprocess import Popen, PIPE
 from sys import argv
-from os import remove
+from os import remove, path
 import bs4 as BeautifulSoup
 
-USERNAME = argv[1]
-PASSWORD = argv[2]
-if argv[3] is None:
+try:
+    USERNAME = argv[1]
+except IndexError:
+    print '%s USERNAME [FORCE_HEADER=True]' % argv[0]
+    exit(1)
+
+try:
+    FORCE_HEADER = argv[2]
+except IndexError:
     FORCE_HEADER = 'True'
-else:
-    FORCE_HEADER = argv[3]
 
 TMP_PAGE_FILE = './tmp_page.html'
+COOKIE_JAR_FILE = './cookie_api_lbc.jar'
 
 TIME_NOW = time()
 TIMESTAMP = datetime.fromtimestamp(TIME_NOW).strftime('%Y%m%d%H%M%S')
 
-POPEN = Popen(('./page_gen.sh', USERNAME, PASSWORD, TMP_PAGE_FILE), stdout=PIPE)
+if not path.isfile(COOKIE_JAR_FILE):
+    print 'Veuillez entrer votre mot de passe : '
+
+POPEN = Popen(('./page_gen.sh', USERNAME, TMP_PAGE_FILE, COOKIE_JAR_FILE), stdout=PIPE)
 POPEN.wait()
 
 TMP_PAGE = open(TMP_PAGE_FILE, 'r')
