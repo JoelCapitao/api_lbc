@@ -6,6 +6,8 @@ python api_lbc.py mail_address [force_header=True]
 
 # Changelog
 
+- 1.3.2:
+  * Modification du chemin du cookie
 - 1.3.1:
   * Ajout de sécurité
   * proprification du code

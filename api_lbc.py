@@ -23,7 +23,7 @@ except IndexError:
     FORCE_HEADER = 'True'
 
 TMP_PAGE_FILE = './tmp_page.html'
-COOKIE_JAR_FILE = './cookie_api_lbc.jar'
+COOKIE_JAR_FILE = '/tmp/cookie_api_lbc.jar'
 
 TIME_NOW = time()
 TIMESTAMP = datetime.fromtimestamp(TIME_NOW).strftime('%Y%m%d%H%M%S')
