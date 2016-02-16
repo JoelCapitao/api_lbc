@@ -3,6 +3,8 @@
 """ Ce script permet de recuperer les informations
 du site lbc """
 
+from __future__ import print_function
+
 # from pdb import set_trace as st
 from datetime import datetime
 from time import time
@@ -14,13 +16,10 @@ import bs4 as BeautifulSoup
 try:
     USERNAME = argv[1]
 except IndexError:
-    print '%s USERNAME [FORCE_HEADER=True]' % argv[0]
+    print('%s USERNAME [FORCE_HEADER=True]' % argv[0])
     exit(1)
 
-try:
-    FORCE_HEADER = argv[2]
-except IndexError:
-    FORCE_HEADER = 'True'
+CSV_FILE_OUTPUT = argv[2]
 
 TMP_PAGE_FILE = './tmp_page.html'
 COOKIE_JAR_FILE = '/tmp/cookie_api_lbc.jar'
@@ -29,7 +28,7 @@ TIME_NOW = time()
 TIMESTAMP = datetime.fromtimestamp(TIME_NOW).strftime('%Y%m%d%H%M%S')
 
 if not path.isfile(COOKIE_JAR_FILE):
-    print 'Veuillez entrer votre mot de passe : '
+    print('Veuillez entrer votre mot de passe : ')
 
 POPEN = Popen(('./utils/page_gen.sh', USERNAME, TMP_PAGE_FILE, COOKIE_JAR_FILE), stdout=PIPE)
 POPEN.wait()
@@ -51,49 +50,45 @@ for i, title in enumerate(SOUP.find_all('div', 'title')):
 for i, price in enumerate(SOUP.find_all('div', 'price')):
     OBJECTS[i]['price'] = int(price.contents[0].encode('utf-8').replace(' \xe2\x82\xac', ''))
 
-for i, obj in enumerate(OBJECTS):
+for i, o in enumerate(OBJECTS):
     OBJECTS[i]['vues'] = int(SOUP('span', 'square')[i*3].contents[0])
     OBJECTS[i]['mails'] = int(SOUP('span', 'square')[i*3+1].contents[0])
     OBJECTS[i]['clics'] = int(SOUP('span', 'square')[i*3+2].contents[0])
 
-
 # VUES
-if FORCE_HEADER == 'True':
-    print 'nom;prix;%s' % TIMESTAMP
+if not path.isfile(CSV_FILE_OUTPUT):
+    CSV_FILE_OUTPUT_FILE = open(CSV_FILE_OUTPUT, 'w')
+    CSV_FILE_OUTPUT_FILE.write('timestamp;')
+    for i, o in enumerate(OBJECTS):
+        CSV_FILE_OUTPUT_FILE.write('%s ( %s € );' % (OBJECTS[i]['title'], OBJECTS[i]['price']))
+    CSV_FILE_OUTPUT_FILE.write('\n')
 else:
-    print TIMESTAMP
-for i, obj in enumerate(OBJECTS):
-    if FORCE_HEADER == 'True':
-        print '%s;%s;%s' % (OBJECTS[i]['title'], OBJECTS[i]['price'], OBJECTS[i]['vues'])
-    else:
-        print '%s' % OBJECTS[i]['vues']
+    CSV_FILE_OUTPUT_FILE = open(CSV_FILE_OUTPUT, 'a')
 
-print ''
 
-# CLICS
-if FORCE_HEADER == 'True':
-    print 'nom;prix;%s' % TIMESTAMP
-else:
-    print TIMESTAMP
-for i, obj in enumerate(OBJECTS):
-    if FORCE_HEADER == 'True':
-        print '%s;%s;%s' % (OBJECTS[i]['title'], OBJECTS[i]['price'], OBJECTS[i]['clics'])
-    else:
-        print '%s' % OBJECTS[i]['clics']
+CSV_FILE_OUTPUT_FILE.write('%s;' % TIMESTAMP)
+for i, o in enumerate(OBJECTS):
+    CSV_FILE_OUTPUT_FILE.write('%s;' % OBJECTS[i]['vues'])
+CSV_FILE_OUTPUT_FILE.write('\n')
 
-print ''
 
-# MAILS
-if FORCE_HEADER == 'True':
-    print 'nom;prix;%s' % TIMESTAMP
-else:
-    print TIMESTAMP
-for i, obj in enumerate(OBJECTS):
-    if FORCE_HEADER == 'True':
-        print '%s;%s;%s' % (OBJECTS[i]['title'], OBJECTS[i]['price'], OBJECTS[i]['mails'])
-    else:
-        print '%s' % OBJECTS[i]['mails']
+# print()
 
+
+
+# # CLICS
+# print(TIMESTAMP, end=';')
+# for i, o in enumerate(OBJECTS):
+#     print('%s' % OBJECTS[i]['clics'], end=';')
+
+# print()
+
+# # MAILS
+# print(TIMESTAMP, end=';')
+# for i, o in enumerate(OBJECTS):
+#     print('%s' % OBJECTS[i]['mails'], end=';')
+
+# print()
 
 # Nettoyage
 remove(TMP_PAGE_FILE)
