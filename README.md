@@ -5,7 +5,8 @@ python api_lbc.py mail_address [force_header=True]
 </code>
 
 # Changelog
-
+- 1.4.1:
+  * Correction du print
 - 1.4.0:
   * Changement de l'output
   * Sortie en fichier
