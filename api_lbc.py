@@ -4,6 +4,7 @@
 du site lbc """
 
 # from pdb import set_trace as st
+from collections import OrderedDict
 from datetime import datetime
 from time import time
 from subprocess import Popen, PIPE
@@ -53,20 +54,23 @@ for i, o in enumerate(OBJECTS):
     OBJECTS[i]['mails'] = int(SOUP('span', 'square')[i*3+1].contents[0])
     OBJECTS[i]['clics'] = int(SOUP('span', 'square')[i*3+2].contents[0])
 
+# Changement de l'ordre
+OBJECTS_R = OrderedDict(sorted(OBJECTS.items(), reverse=True))
+
 # VUES
 if not path.isfile(CSV_FILE_OUTPUT):
     CSV_FILE_OUTPUT_FILE = open(CSV_FILE_OUTPUT, 'w')
     CSV_FILE_OUTPUT_FILE.write('timestamp;')
-    for i, o in enumerate(OBJECTS):
-        CSV_FILE_OUTPUT_FILE.write('%s ( %s € );' % (OBJECTS[i]['title'], OBJECTS[i]['price']))
+    for o in OBJECTS_R:
+        CSV_FILE_OUTPUT_FILE.write('%s ( %s € );' % (OBJECTS_R[o]['title'], OBJECTS_R[o]['price']))
     CSV_FILE_OUTPUT_FILE.write('\n')
 else:
     CSV_FILE_OUTPUT_FILE = open(CSV_FILE_OUTPUT, 'a')
 
 
 CSV_FILE_OUTPUT_FILE.write('%s;' % TIMESTAMP)
-for i, o in enumerate(OBJECTS):
-    CSV_FILE_OUTPUT_FILE.write('%s;' % OBJECTS[i]['vues'])
+for o in OBJECTS_R:
+    CSV_FILE_OUTPUT_FILE.write('%s;' % OBJECTS_R[o]['vues'])
 CSV_FILE_OUTPUT_FILE.write('\n')
 
 
