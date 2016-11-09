@@ -1,10 +1,13 @@
 # Example
 
 <code bash>
-python api_lbc.py mail_address [force_header=True]
+python api_lbc.py mail@domain.fr output.csv [force_header=True]
 </code>
 
 # Changelog
+- 1.5.1:
+  * Changement du help
+  * Ajout d'une exception
 - 1.5.0:
   * Changement de l'ordre d'apparition
   * Bug fixes

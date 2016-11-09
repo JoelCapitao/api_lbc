@@ -14,11 +14,11 @@ import bs4 as BeautifulSoup
 
 try:
     USERNAME = argv[1]
+    CSV_FILE_OUTPUT = argv[2]
 except IndexError:
-    print '%s USERNAME [FORCE_HEADER=True]' % argv[0]
+    print '%s USERNAME CSV_FILE_OUTPUT [FORCE_HEADER=True]' % argv[0]
     exit(1)
 
-CSV_FILE_OUTPUT = argv[2]
 
 TMP_PAGE_FILE = './tmp_page.html'
 COOKIE_JAR_FILE = '/tmp/cookie_api_lbc.jar'
