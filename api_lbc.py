@@ -3,7 +3,7 @@
 """ Ce script permet de recuperer les informations
 du site lbc """
 
-from pdb import set_trace as st
+# from pdb import set_trace as st
 from collections import OrderedDict
 from datetime import datetime
 from time import time
@@ -40,7 +40,6 @@ TMP_PAGE.close()
 OBJECTS = {}
 for i, title in enumerate(SOUP.find_all('div', 'title')):
     o = {}
-    st()
     o['url'] = title.a.attrs['href']
     o['title'] = title.a.string
     # o['title'] = str(title.a.contents[0].encode('utf-8').decode('ascii', 'ignore'))

@@ -5,6 +5,8 @@ python api_lbc.py mail@domain.fr .
 </code>
 
 # Changelog
+- 1.6.1:
+  * Bug Fix
 - 1.6.0:
   * Creation d'un fichier par element
   * Finnissions du code
