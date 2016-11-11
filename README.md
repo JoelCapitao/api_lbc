@@ -5,6 +5,9 @@ python api_lbc.py mail@domain.fr .
 </code>
 
 # Changelog
+- 1.7.0:
+  * New version of the core
+  * Maybe unstable...
 - 1.6.1:
   * Bug Fix
 - 1.6.0:

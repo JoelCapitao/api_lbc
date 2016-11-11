@@ -3,7 +3,7 @@
 """ Ce script permet de recuperer les informations
 du site lbc """
 
-# from pdb import set_trace as st
+from pdb import set_trace as st
 from collections import OrderedDict
 from datetime import datetime
 from time import time
@@ -12,6 +12,11 @@ from sys import argv
 from os import remove, path
 import bs4 as BeautifulSoup
 
+import cookielib
+import requests
+import pickle
+import getpass
+
 try:
     USERNAME = argv[1]
     CSV_PATH = argv[2]
@@ -19,57 +24,99 @@ except IndexError:
     print '%s USERNAME CSV_PATH' % argv[0]
     exit(1)
 
+def get_timestamp():
+    """ Return a timestamp """
+    actual_time = time()
+    timestamp = datetime.fromtimestamp(actual_time).strftime('%Y%m%d%H%M%S')
+    return timestamp
 
-TMP_PAGE_FILE = './tmp_page.html'
-COOKIE_JAR_FILE = '/tmp/cookie_api_lbc.jar'
+class LeBonCoin(object):
+    """ Utils class for api_lbc """
+    def __init__(self, username, csv_root_path):
+        """ init"""
+        self.tmp_html_path = './tmp_page.html'
+        self.cookie_jar_path = '/tmp/cookie_api_lbc.jar'
+        self.username = username
+        self.password = ''
+        self.csv_root_path = csv_root_path
+        self.timestamp = get_timestamp()
+        self.session = requests.Session()
 
-TIME_NOW = time()
-TIMESTAMP = datetime.fromtimestamp(TIME_NOW).strftime('%Y%m%d%H%M%S')
+    def authentication(self):
+        """ Authentication """
+        if path.isfile(self.cookie_jar_path):
+            with open(self.cookie_jar_path) as cookie_jar_file:
+                cookies = requests.utils.cookiejar_from_dict(pickle.load(cookie_jar_file))
+                self.session.cookies = cookies
+        else:
+            print 'Veuillez entrer votre mot de passe : '
+            self.password = getpass.getpass()
+            self.cookie_gen()
 
-if not path.isfile(COOKIE_JAR_FILE):
-    print 'Veuillez entrer votre mot de passe : '
+    def cookie_gen(self):
+        """cookie gen"""
+        url = 'https://compteperso.leboncoin.fr/store/verify_login/0'
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        payload = {'st_username': self.username, 'st_passwd': self.password}
+        self.session.post(url, headers=headers, data=payload)
+        with open(self.cookie_jar_path, 'w') as cookie_jar_file:
+            pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), cookie_jar_file)
 
-POPEN = Popen(('./utils/page_gen.sh', USERNAME, TMP_PAGE_FILE, COOKIE_JAR_FILE), stdout=PIPE)
-POPEN.wait()
+    def download_web_page(self, url):
+        """ This method download a web page and store the informations
+        in self.tmp_html_path """
+        req_url = self.session.get(url)
+        with open(self.tmp_html_path, 'wb') as tmp_html_file:
+            tmp_html_file.write(req_url.text.encode('utf-8'))
 
-TMP_PAGE = open(TMP_PAGE_FILE, 'r')
-SOUP = BeautifulSoup.BeautifulSoup(TMP_PAGE.read(), 'lxml')
-TMP_PAGE.close()
+    def get_dashboard(self):
+        """ get_dashboard """
+        self.download_web_page('https://compteperso.leboncoin.fr/account/index.html?ca=12_s')
 
-# Generation of the list
-OBJECTS = {}
-for i, title in enumerate(SOUP.find_all('div', 'title')):
-    o = {}
-    o['url'] = title.a.attrs['href']
-    o['title'] = title.a.string
-    # o['title'] = str(title.a.contents[0].encode('utf-8').decode('ascii', 'ignore'))
-    o['price'] = -1
-    o['views'] = -1
-    o['mails'] = -1
-    o['clics'] = -1
-    OBJECTS[i] = o
+        tmp_html_file = open(self.tmp_html_path, 'r')
+        soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
+        tmp_html_file.close()
 
-for i, price in enumerate(SOUP.find_all('div', 'price')):
-    OBJECTS[i]['price'] = int(price.contents[0].encode('utf-8').replace(' \xe2\x82\xac', ''))
+        # Generation of the list
+        ads_list = {}
+        for i, title in enumerate(soup.find_all('div', 'title')):
+            o = {}
+            o['url'] = title.a.attrs['href']
+            o['title'] = title.a.string
+            print o['title']
+            # o['title'] = str(title.a.contents[0].encode('utf-8').decode('ascii', 'ignore'))
+            o['price'] = -1
+            o['views'] = -1
+            o['mails'] = -1
+            o['clics'] = -1
+            ads_list[i] = o
 
-for i, o in enumerate(OBJECTS):
-    OBJECTS[i]['views'] = int(SOUP('span', 'square')[i*3].contents[0])
-    OBJECTS[i]['mails'] = int(SOUP('span', 'square')[i*3+1].contents[0])
-    OBJECTS[i]['clics'] = int(SOUP('span', 'square')[i*3+2].contents[0])
+        for i, price in enumerate(soup.find_all('div', 'price')):
+            ads_list[i]['price'] = int(price.contents[0].encode('utf-8').replace(' \xe2\x82\xac', ''))
 
-# Changement de l'ordre
-OBJECTS_R = OrderedDict(sorted(OBJECTS.items(), reverse=True))
+        for i, o in enumerate(ads_list):
+            ads_list[i]['views'] = int(soup('span', 'square')[i*3].contents[0])
+            ads_list[i]['mails'] = int(soup('span', 'square')[i*3+1].contents[0])
+            ads_list[i]['clics'] = int(soup('span', 'square')[i*3+2].contents[0])
 
-for o in OBJECTS_R:
-    CSV_OUTPUT = '%s/%s.csv' % (CSV_PATH, OBJECTS_R[o]['title'])
-    if not path.isfile(CSV_OUTPUT):
-        CSV_OUTPUT_FILE = open(CSV_OUTPUT, 'w')
-        CSV_OUTPUT_FILE.write('timestamp;price;views;clics;mails;\n')
-    else:
-        CSV_OUTPUT_FILE = open(CSV_OUTPUT, 'a')
-    CSV_OUTPUT_FILE.write('%s;%s;%s;%s;%s;\n' % (TIMESTAMP, OBJECTS_R[o]['price'], OBJECTS_R[o]['views'], OBJECTS_R[o]['clics'], OBJECTS_R[o]['mails']))
+        # Changement de l'ordre
+        ads_list_sorted = OrderedDict(sorted(ads_list.items(), reverse=True))
 
-CSV_OUTPUT_FILE.close()
+        for o in ads_list_sorted:
+            csv_ad_path = '%s/%s.csv' % (self.csv_root_path, ads_list_sorted[o]['title'])
+            if not path.isfile(csv_ad_path):
+                csv_ad_file = open(csv_ad_path, 'w')
+                csv_ad_file.write('timestamp;price;views;clics;mails;\n')
+            else:
+                csv_ad_file = open(csv_ad_path, 'a')
+            csv_ad_file.write('%s;%s;%s;%s;%s;\n' % (self.timestamp, ads_list_sorted[o]['price'], ads_list_sorted[o]['views'], ads_list_sorted[o]['clics'], ads_list_sorted[o]['mails']))
+            csv_ad_file.close()
 
-# Cleaning
-remove(TMP_PAGE_FILE)
+        # Cleaning
+        remove(self.tmp_html_path)
+
+LBC = LeBonCoin(USERNAME, CSV_PATH)
+LBC.authentication()
+# LBC.cookie_gen()
+
+LBC.get_dashboard()
