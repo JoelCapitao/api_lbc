@@ -1,12 +1,17 @@
 # Example
 
 <code bash>
+# Display all ads you have
 python api_lbc.py --show all
-
+</code>
+<code bash>
+# Display a particular ad
 python api_lbc.py --show ID
 </code>
 
 # Changelog
+- 1.8.0:
+  * Add : Select a particular ad
 - 1.7.3:
   * Add colors
   * Change variables
