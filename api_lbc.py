@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 """ This script can get informations from website LeBonCoin """
 
-# from pdb import set_trace as st
+from pdb import set_trace as st
 from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime
@@ -96,13 +96,32 @@ class LeBonCoin(object):
         with open(self.tmp_html_path, 'wb') as tmp_html_file:
             tmp_html_file.write(req_url.text.encode('utf-8'))
 
-    def get_ad(self, ad_id):
+    def search(self, tag):
+        """ Search """
+        self.download_web_page('https://www.leboncoin.fr/annonces/offres/ile_de_france/?th=1&q=%s&parrot=0' % tag)
+        tmp_html_file = open(self.tmp_html_path, 'r')
+        soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
+        tmp_html_file.close()
+
+        # Cleaning
+        remove(self.tmp_html_path)
+
+        print soup('a', 'list_item')
+
+    def get_ad(self, ad_id, ad_category=None):
         """ Display an ad information. """
         ads_list = self.get_dashboard()
         ad_list = {}
         for ad_list_tmp in ads_list.values():
             if ad_list_tmp['id'] == ad_id:
                 ad_list = ad_list_tmp
+
+        if not ad_list.has_key('category'):
+            ad_list['category'] = ad_category
+            ad_list['url'] = 'https://www.leboncoin.fr/%s/%s.htm?ca=12_s' % (ad_category, ad_id)
+            ad_list['views'] = -1
+            ad_list['mails'] = -1
+            ad_list['clics'] = -1
 
         if ad_list == {}:
             print '%sError. This ID (%s) does not exist.%s' % (self.colors['red'],
@@ -116,7 +135,9 @@ class LeBonCoin(object):
         soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
         tmp_html_file.close()
 
-        ad_list['description'] = soup('p', 'value', 'description')[0].text
+        ad_list['description'] = soup.find('p', 'value', 'description').text
+        ad_list['title'] = soup.find('p', 'item_imageCaption').text
+        ad_list['price'] = soup.find('h2', 'item_price')['content']
 
         return ad_list
 
@@ -165,9 +186,9 @@ class LeBonCoin(object):
     ##    DISPLAY    ##
     ###################
 
-    def display_ad(self, ad_id):
+    def display_ad(self, ad_id, ad_category=None):
         """ Display an ad. """
-        ad_list = self.get_ad(ad_id)
+        ad_list = self.get_ad(ad_id, ad_category)
         if ad_list == {}:
             return False
         # Display informations
@@ -177,15 +198,18 @@ class LeBonCoin(object):
         if self.profile['verbose']:
             print '  Category: %s' %  ad_list['category']
             print '  ID: %s' % ad_list['id']
-        print '  views: %s%s%s' % (self.colors['bold'],\
-                                   ad_list['views'],\
-                                   self.colors['native'])
-        print '  clics: %s%s%s' % (self.colors['bold'],\
-                                   ad_list['clics'],\
-                                   self.colors['native'])
-        print '  mails: %s%s%s' % (self.colors['bold'],\
-                                   ad_list['mails'],\
-                                   self.colors['native'])
+        if ad_list['views'] != -1:
+            print '  views: %s%s%s' % (self.colors['bold'],\
+                                       ad_list['views'],\
+                                       self.colors['native'])
+        if ad_list['clics'] != -1:
+            print '  clics: %s%s%s' % (self.colors['bold'],\
+                                       ad_list['clics'],\
+                                       self.colors['native'])
+        if ad_list['mails'] != -1:
+            print '  mails: %s%s%s' % (self.colors['bold'],\
+                                       ad_list['mails'],\
+                                       self.colors['native'])
         print '  Description:'
         print ad_list['description'].encode('utf-8')
         print self.colors['native']
@@ -239,6 +263,15 @@ if __name__ == '__main__':
                         metavar='[ID]',
                         nargs=1,
                         help='Show all ads or just one')
+    PARSER.add_argument('--category',
+                        metavar='[CATEGORY]',
+                        nargs=1,
+                        default=None,
+                        help='Force one category')
+    PARSER.add_argument('--search',
+                        metavar='[TAG]',
+                        nargs=1,
+                        help='Search')
     PARSER.add_argument('--verbose',
                         action='store_true',
                         default=False,
@@ -252,8 +285,15 @@ if __name__ == '__main__':
     LBC = LeBonCoin(CSV_ROOT_PATH, verbose=ARGS.verbose, color=ARGS.uncolor)
     LBC.authentication()
 
+    # LBC.search()
+
     if ARGS.show is not None:
         if ARGS.show[0] == 'all':
             LBC.display_dashboard()
         else:
-            LBC.display_ad(ARGS.show[0])
+            if ARGS.category is not None:
+                LBC.display_ad(ARGS.show[0], ad_category=ARGS.category[0])
+            else:
+                LBC.display_ad(ARGS.show[0])
+    elif ARGS.search is not None:
+        LBC.search(ARGS.search[0])

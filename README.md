@@ -23,6 +23,8 @@ python api_lbc.py --show ID
 ```
 
 ## Changelog
+- 1.9.0:
+  * Search function unstable
 - 1.8.1:
   * Update README
 - 1.8.0:
