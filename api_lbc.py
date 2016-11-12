@@ -3,23 +3,16 @@
 """ This script can get informations from website LeBonCoin """
 
 # from pdb import set_trace as st
+from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime
 from getpass import getpass
 from os import remove, path
 from pickle import load, dump
-from sys import argv
 from time import time
 from requests import Session
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 import bs4 as BeautifulSoup
-
-try:
-    USERNAME = argv[1]
-    CSV_PATH = argv[2]
-except IndexError:
-    print '%s USERNAME CSV_PATH' % argv[0]
-    exit(1)
 
 def get_timestamp():
     """ Return a timestamp """
@@ -29,11 +22,11 @@ def get_timestamp():
 
 class LeBonCoin(object):
     """ Utils class for api_lbc """
-    def __init__(self, username, csv_root_path):
+    def __init__(self, csv_root_path):
         """ init"""
         self.tmp_html_path = './tmp_page.html'
         self.cookie_jar_path = '/tmp/cookie_api_lbc.jar'
-        self.username = username
+        self.username = ''
         self.password = ''
         self.csv_root_path = csv_root_path
         self.timestamp = get_timestamp()
@@ -46,6 +39,7 @@ class LeBonCoin(object):
                 cookies = cookiejar_from_dict(load(cookie_jar_file))
                 self.session.cookies = cookies
         else:
+            self.username = raw_input('Username: ')
             self.password = getpass()
             self.cookie_gen()
 
@@ -130,6 +124,21 @@ class LeBonCoin(object):
         # Cleaning
         remove(self.tmp_html_path)
 
-LBC = LeBonCoin(USERNAME, CSV_PATH)
-LBC.authentication()
-LBC.get_dashboard()
+
+if __name__ == '__main__':
+    PARSER = ArgumentParser()
+    PARSER.add_argument('--show',
+                        metavar='[ID]',
+                        nargs=1,
+                        help='Show all ads or just one')
+    ARGS = PARSER.parse_args()
+
+    CSV_ROOT_PATH = '.'
+
+    if ARGS.show is not None:
+        if ARGS.show[0] == 'all':
+            LBC = LeBonCoin(CSV_ROOT_PATH)
+            LBC.authentication()
+            LBC.get_dashboard()
+        else:
+            print 'Not implemented yet.'

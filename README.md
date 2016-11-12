@@ -1,10 +1,13 @@
 # Example
 
 <code bash>
-python api_lbc.py mail@domain.fr . 
+python api_lbc.py --show all
+python api_lbc.py --show ID
 </code>
 
 # Changelog
+- 1.7.2:
+  * Add a real argparse
 - 1.7.1:
   * Replacement of bash script in python
   * Cleaning
