@@ -1,15 +1,30 @@
-# Example
+# API LeBonCoin
 
-<code bash>
+## Usage
+```
+usage: api_lbc.py [-h] [--show [ID]] [--verbose] [--uncolor]
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --show [ID]  Show all ads or just one
+  --verbose    Enable verbose mode
+  --uncolor    Disable color mode
+```
+
+## Examples
+
+```bash
 # Display all ads you have
 python api_lbc.py --show all
-</code>
-<code bash>
+
+
 # Display a particular ad
 python api_lbc.py --show ID
-</code>
+```
 
-# Changelog
+## Changelog
+- 1.8.1:
+  * Update README
 - 1.8.0:
   * Add : Select a particular ad
 - 1.7.3:
