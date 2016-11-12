@@ -5,6 +5,11 @@ python api_lbc.py mail@domain.fr .
 </code>
 
 # Changelog
+- 1.7.1:
+  * Replacement of bash script in python
+  * Cleaning
+  * Display informations in shell
+  * Pylint : "Your code has been rated at 10.00/10"
 - 1.7.0:
   * New version of the core
   * Maybe unstable...
