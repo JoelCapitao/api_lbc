@@ -2,10 +2,14 @@
 
 <code bash>
 python api_lbc.py --show all
+
 python api_lbc.py --show ID
 </code>
 
 # Changelog
+- 1.7.3:
+  * Add colors
+  * Change variables
 - 1.7.2:
   * Add a real argparse
 - 1.7.1:

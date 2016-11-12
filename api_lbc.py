@@ -22,25 +22,56 @@ def get_timestamp():
 
 class LeBonCoin(object):
     """ Utils class for api_lbc """
-    def __init__(self, csv_root_path):
+    def __init__(self, csv_root_path, verbose=False, color=True):
         """ init"""
         self.tmp_html_path = './tmp_page.html'
         self.cookie_jar_path = '/tmp/cookie_api_lbc.jar'
-        self.username = ''
-        self.password = ''
         self.csv_root_path = csv_root_path
         self.timestamp = get_timestamp()
-        self.session = Session()
+        self.profile = {
+            'username': '',
+            'password': '',
+            'session': Session(),
+            'verbose': verbose,
+        }
+        if color:
+            self.colors = {
+                'red': '\033[1;31m',
+                'green': '\033[1;32m',
+                'yellow': '\033[1;33m',
+                'purple': '\033[1;34m',
+                'pink': '\033[1;35m',
+                'light_blue': '\033[1;36m',
+                'white': '\033[m',
+                'native': '\033[m',
+                'bold': '\033[1m'
+            }
+        else:
+            self.colors = {
+                'red': '',
+                'green': '',
+                'yellow': '',
+                'purple': '',
+                'pink': '',
+                'light_blue': '',
+                'white': '',
+                'native': '',
+                'bold': ''
+            }
+
+    ########################
+    ##   AUTHENTICATION   ##
+    ########################
 
     def authentication(self):
         """ Authentication """
         if path.isfile(self.cookie_jar_path):
             with open(self.cookie_jar_path) as cookie_jar_file:
                 cookies = cookiejar_from_dict(load(cookie_jar_file))
-                self.session.cookies = cookies
+                self.profile['session'].cookies = cookies
         else:
-            self.username = raw_input('Username: ')
-            self.password = getpass()
+            self.profile['username'] = raw_input('Username: ')
+            self.profile['password'] = getpass()
             self.cookie_gen()
 
     def cookie_gen(self):
@@ -48,17 +79,47 @@ class LeBonCoin(object):
         session, but it's also save in self.cookie_jar_path."""
         url = 'https://compteperso.leboncoin.fr/store/verify_login/0'
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        payload = {'st_username': self.username, 'st_passwd': self.password}
-        self.session.post(url, headers=headers, data=payload)
+        payload = {'st_username': self.profile['username'], 'st_passwd': self.profile['password']}
+        self.profile['session'].post(url, headers=headers, data=payload)
         with open(self.cookie_jar_path, 'w') as cookie_jar_file:
-            dump(dict_from_cookiejar(self.session.cookies), cookie_jar_file)
+            dump(dict_from_cookiejar(self.profile['session'].cookies), cookie_jar_file)
+
+
+    ###################
+    ##   FORMATTER   ##
+    ###################
 
     def download_web_page(self, url):
         """ This method download a web page and store the informations
         in self.tmp_html_path """
-        req_url = self.session.get(url)
+        req_url = self.profile['session'].get(url)
         with open(self.tmp_html_path, 'wb') as tmp_html_file:
             tmp_html_file.write(req_url.text.encode('utf-8'))
+
+    def get_ad(self, ad_id):
+        """ Display an ad information. """
+        ads_list = self.get_dashboard()
+        ad_list = {}
+        for ad_list_tmp in ads_list.values():
+            if ad_list_tmp['id'] == ad_id:
+                ad_list = ad_list_tmp
+
+        if ad_list == {}:
+            print '%sError. This ID (%s) does not exist.%s' % (self.colors['red'],
+                                                               ad_id,
+                                                               self.colors['native'])
+            return ad_list
+
+        self.download_web_page(ad_list['url'])
+        # Generation of the list
+        tmp_html_file = open(self.tmp_html_path, 'r')
+        soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
+        tmp_html_file.close()
+
+        ad_list['description'] = soup('p', 'value', 'description')[0].text
+
+        return ad_list
+
 
     def get_dashboard(self):
         """ This method displays and writes infos of any ads. """
@@ -94,9 +155,47 @@ class LeBonCoin(object):
         # Sort the list of ads
         ads_list_sorted = OrderedDict(sorted(ads_list.items(), reverse=True))
 
+        # Cleaning
+        remove(self.tmp_html_path)
+
+        return ads_list_sorted
+
+
+    ###################
+    ##    DISPLAY    ##
+    ###################
+
+    def display_ad(self, ad_id):
+        """ Display an ad. """
+        ad_list = self.get_ad(ad_id)
+        if ad_list == {}:
+            return False
+        # Display informations
+        print '%s%s%s ( %s € ) :' % (\
+            self.colors['bold'], ad_list['title'].encode('utf-8'),\
+            self.colors['native'], ad_list['price'])
+        if self.profile['verbose']:
+            print '  Category: %s' %  ad_list['category']
+            print '  ID: %s' % ad_list['id']
+        print '  views: %s%s%s' % (self.colors['bold'],\
+                                   ad_list['views'],\
+                                   self.colors['native'])
+        print '  clics: %s%s%s' % (self.colors['bold'],\
+                                   ad_list['clics'],\
+                                   self.colors['native'])
+        print '  mails: %s%s%s' % (self.colors['bold'],\
+                                   ad_list['mails'],\
+                                   self.colors['native'])
+        print '  Description:'
+        print ad_list['description'].encode('utf-8')
+        print self.colors['native']
+
+    def display_dashboard(self):
+        """ Display a dashboard. """
+        ads_list = self.get_dashboard()
         # Write ad info in file
-        for i in ads_list_sorted:
-            csv_ad_path = '%s/%s.csv' % (self.csv_root_path, ads_list_sorted[i]['title'])
+        for i in ads_list:
+            csv_ad_path = '%s/%s.csv' % (self.csv_root_path, ads_list[i]['title'])
             if not path.isfile(csv_ad_path):
                 csv_ad_file = open(csv_ad_path, 'w')
                 csv_ad_file.write('timestamp;price;views;clics;mails;\n')
@@ -104,41 +203,57 @@ class LeBonCoin(object):
                 csv_ad_file = open(csv_ad_path, 'a')
             csv_ad_file.write('%s;%s;%s;%s;%s;\n' % (\
                 self.timestamp,\
-                ads_list_sorted[i]['price'],\
-                ads_list_sorted[i]['views'],\
-                ads_list_sorted[i]['clics'],\
-                ads_list_sorted[i]['mails']))
+                ads_list[i]['price'],\
+                ads_list[i]['views'],\
+                ads_list[i]['clics'],\
+                ads_list[i]['mails']))
             csv_ad_file.close()
 
         # Display informations
-        for i in ads_list_sorted:
-            print '%s ( %s € ) :' % (\
-                ads_list_sorted[i]['title'].encode('utf-8'),\
-                ads_list_sorted[i]['price'])
-            print '  Category: %s' % ads_list_sorted[i]['category']
-            print '  ID: %s' % ads_list_sorted[i]['id']
-            print '  views: %s' % ads_list_sorted[i]['views']
-            print '  clics: %s' % ads_list_sorted[i]['clics']
-            print '  mails: %s' % ads_list_sorted[i]['mails']
+        for i in ads_list:
+            print '%s%s%s ( %s € ) :' % (\
+                self.colors['bold'], ads_list[i]['title'].encode('utf-8'),\
+                self.colors['native'], ads_list[i]['price'])
+            print '  ID: %s%s%s' % (self.colors['bold'],\
+                                    ads_list[i]['id'],\
+                                    self.colors['native'])
+            print '  views: %s%s%s' % (self.colors['bold'],\
+                                       ads_list[i]['views'],\
+                                       self.colors['native'])
+            print '  clics: %s%s%s' % (self.colors['bold'],\
+                                       ads_list[i]['clics'],\
+                                       self.colors['native'])
+            print '  mails: %s%s%s' % (self.colors['bold'],\
+                                       ads_list[i]['mails'],\
+                                       self.colors['native'])
+            if self.profile['verbose']:
+                print '  Category: %s' % ads_list[i]['category']
 
-        # Cleaning
-        remove(self.tmp_html_path)
 
 
 if __name__ == '__main__':
+    CSV_ROOT_PATH = '.'
     PARSER = ArgumentParser()
+
     PARSER.add_argument('--show',
                         metavar='[ID]',
                         nargs=1,
                         help='Show all ads or just one')
+    PARSER.add_argument('--verbose',
+                        action='store_true',
+                        default=False,
+                        help='Enable verbose mode')
+    PARSER.add_argument('--uncolor',
+                        action='store_false',
+                        default=True,
+                        help='Disable color mode')
     ARGS = PARSER.parse_args()
 
-    CSV_ROOT_PATH = '.'
+    LBC = LeBonCoin(CSV_ROOT_PATH, verbose=ARGS.verbose, color=ARGS.uncolor)
+    LBC.authentication()
 
     if ARGS.show is not None:
         if ARGS.show[0] == 'all':
-            LBC = LeBonCoin(CSV_ROOT_PATH)
-            LBC.authentication()
-            LBC.get_dashboard()
+            LBC.display_dashboard()
         else:
-            print 'Not implemented yet.'
+            LBC.display_ad(ARGS.show[0])
