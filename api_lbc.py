@@ -128,6 +128,8 @@ class LeBonCoin(object):
                 ad_dict['price'] = ad_soup.h3.attrs['content']
             except AttributeError:
                 ad_dict['price'] = 0
+            except KeyError:
+                ad_dict['price'] = 0
             ad_dict['address'] = ad_soup.find('meta').attrs['content']
             ads_list[i] = ad_dict
 

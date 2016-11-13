@@ -31,6 +31,8 @@ python api_lbc.py search "vélo à roues" --localisation paris
 ```
 
 ## Changelog
+- 2.0.1:
+  * Fix price issue
 - 2.0.0:
   * New version of the script.
   * argument rethink
