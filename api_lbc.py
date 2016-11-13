@@ -10,6 +10,7 @@ from getpass import getpass
 from os import remove, path
 from pickle import load, dump
 from time import time
+from sys import argv
 from requests import Session
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 import bs4 as BeautifulSoup
@@ -63,9 +64,9 @@ class LeBonCoin(object):
     ##   AUTHENTICATION   ##
     ########################
 
-    def authentication(self):
+    def authentication(self, force=False):
         """ Authentication """
-        if path.isfile(self.cookie_jar_path):
+        if path.isfile(self.cookie_jar_path) and not force:
             with open(self.cookie_jar_path) as cookie_jar_file:
                 cookies = cookiejar_from_dict(load(cookie_jar_file))
                 self.profile['session'].cookies = cookies
@@ -93,51 +94,70 @@ class LeBonCoin(object):
         """ This method download a web page and store the informations
         in self.tmp_html_path """
         req_url = self.profile['session'].get(url)
+        if req_url.status_code == 404:
+            return False
         with open(self.tmp_html_path, 'wb') as tmp_html_file:
             tmp_html_file.write(req_url.text.encode('utf-8'))
+        return True
 
-    def search(self, tag):
-        """ Search """
-        self.download_web_page('https://www.leboncoin.fr/annonces/offres/ile_de_france/?th=1&q=%s&parrot=0' % tag)
-        tmp_html_file = open(self.tmp_html_path, 'r')
-        soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
-        tmp_html_file.close()
+    def get_search(self, keywords, region='ile_de_france', localisation=None):
+        """ Search something on LBC. """
+        if localisation is None:
+            localisation_url = ''
+        else:
+            localisation_url = '%s/' % localisation
+        self.download_web_page('https://www.leboncoin.fr/annonces/offres/%s/%s?th=1&q=%s&parrot=0' % (region, localisation_url, keywords))
+
+        # Generate a soup
+        with open(self.tmp_html_path, 'r') as tmp_html_file:
+            soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
 
         # Cleaning
         remove(self.tmp_html_path)
 
-        print soup('a', 'list_item')
+        ads_list = {}
+        for i, ad_soup in enumerate(soup('a', 'list_item')):
+            ad_dict = {}
+            try:
+                ad_dict['category'] = ad_soup.attrs['href'].split('/')[3]
+                ad_dict['id'] = ad_soup.attrs['href'].split('/')[4].split('.')[0]
+                ad_dict['title'] = ad_soup.attrs['title']
+            except IndexError:
+                break
+            try:
+                ad_dict['price'] = ad_soup.h3.attrs['content']
+            except AttributeError:
+                ad_dict['price'] = 0
+            ad_dict['address'] = ad_soup.find('meta').attrs['content']
+            ads_list[i] = ad_dict
 
-    def get_ad(self, ad_id, ad_category=None):
+        return ads_list
+
+
+    def get_ad(self, ad_id, ad_category):
         """ Display an ad information. """
-        ads_list = self.get_dashboard()
         ad_list = {}
-        for ad_list_tmp in ads_list.values():
-            if ad_list_tmp['id'] == ad_id:
-                ad_list = ad_list_tmp
+        ad_list['url'] = 'https://www.leboncoin.fr/%s/%s.htm?ca=12_s' % (ad_category, ad_id)
+        ad_list['category'] = ad_category
+        ad_list['id'] = ad_id
 
-        if not ad_list.has_key('category'):
-            ad_list['category'] = ad_category
-            ad_list['url'] = 'https://www.leboncoin.fr/%s/%s.htm?ca=12_s' % (ad_category, ad_id)
-            ad_list['views'] = -1
-            ad_list['mails'] = -1
-            ad_list['clics'] = -1
-
-        if ad_list == {}:
-            print '%sError. This ID (%s) does not exist.%s' % (self.colors['red'],
-                                                               ad_id,
-                                                               self.colors['native'])
-            return ad_list
-
-        self.download_web_page(ad_list['url'])
-        # Generation of the list
-        tmp_html_file = open(self.tmp_html_path, 'r')
-        soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
-        tmp_html_file.close()
+        if not self.download_web_page(ad_list['url']):
+            print '%sThis ad may not exist...%s' % (self.colors['red'], self.colors['native'])
+            return {}
+        # Generate a soup
+        with open(self.tmp_html_path, 'r') as tmp_html_file:
+            soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
 
         ad_list['description'] = soup.find('p', 'value', 'description').text
-        ad_list['title'] = soup.find('p', 'item_imageCaption').text
-        ad_list['price'] = soup.find('h2', 'item_price')['content']
+        ad_list['title'] = soup.find('button', 'share twitter trackable').attrs['data-text']
+        try:
+            ad_list['price'] = soup.find('h2', 'item_price')['content']
+        except TypeError:
+            ad_list['price'] = 0
+        ad_list['address'] = soup.find('div', 'line line_city').find('span', 'value').string.split('\n')[0]
+
+        # Cleaning
+        remove(self.tmp_html_path)
 
         return ad_list
 
@@ -146,34 +166,34 @@ class LeBonCoin(object):
         """ This method displays and writes infos of any ads. """
         self.download_web_page('https://compteperso.leboncoin.fr/account/index.html?ca=12_s')
 
-        # Generation of the list
-        tmp_html_file = open(self.tmp_html_path, 'r')
-        soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
-        tmp_html_file.close()
+        # Generate a soup
+        with open(self.tmp_html_path, 'r') as tmp_html_file:
+            soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
 
+        # Create a list of ads
         ads_list = {}
-        for i, title in enumerate(soup.find_all('div', 'title')):
+        for i, ad_soup in enumerate(soup('div', 'detail')):
             ad_dict = {}
-            ad_dict['url'] = title.a.attrs['href']
+            ad_dict['url'] = ad_soup.a.attrs['href']
             ad_dict['category'] = ad_dict['url'].split('/')[3]
             ad_dict['id'] = ad_dict['url'].split('/')[4].split('.')[0]
-            ad_dict['title'] = title.a.string
-            ad_dict['price'] = -1
+            ad_dict['title'] = ad_soup.a.string
+            try:
+                ad_dict['price'] = int(ad_soup.find('div', 'price').string.encode('utf-8').replace(' \xe2\x82\xac', ''))
+            except AttributeError:
+                ad_dict['price'] = 0
             ad_dict['views'] = -1
             ad_dict['mails'] = -1
             ad_dict['clics'] = -1
             ads_list[i] = ad_dict
 
-        for i, price in enumerate(soup.find_all('div', 'price')):
-            ads_list[i]['price'] = \
-            int(price.contents[0].encode('utf-8').replace(' \xe2\x82\xac', ''))
-
+        # Add views, mails and clics to the ads
         for i, ad_dict in enumerate(ads_list):
             ads_list[i]['views'] = int(soup('span', 'square')[i*3].contents[0])
             ads_list[i]['mails'] = int(soup('span', 'square')[i*3+1].contents[0])
             ads_list[i]['clics'] = int(soup('span', 'square')[i*3+2].contents[0])
 
-        # Sort the list of ads
+        # Sort the list
         ads_list_sorted = OrderedDict(sorted(ads_list.items(), reverse=True))
 
         # Cleaning
@@ -186,30 +206,19 @@ class LeBonCoin(object):
     ##    DISPLAY    ##
     ###################
 
-    def display_ad(self, ad_id, ad_category=None):
+    def display_ad(self, ad_id, ad_category):
         """ Display an ad. """
         ad_list = self.get_ad(ad_id, ad_category)
         if ad_list == {}:
             return False
         # Display informations
-        print '%s%s%s ( %s € ) :' % (\
-            self.colors['bold'], ad_list['title'].encode('utf-8'),\
-            self.colors['native'], ad_list['price'])
-        if self.profile['verbose']:
-            print '  Category: %s' %  ad_list['category']
-            print '  ID: %s' % ad_list['id']
-        if ad_list['views'] != -1:
-            print '  views: %s%s%s' % (self.colors['bold'],\
-                                       ad_list['views'],\
-                                       self.colors['native'])
-        if ad_list['clics'] != -1:
-            print '  clics: %s%s%s' % (self.colors['bold'],\
-                                       ad_list['clics'],\
-                                       self.colors['native'])
-        if ad_list['mails'] != -1:
-            print '  mails: %s%s%s' % (self.colors['bold'],\
-                                       ad_list['mails'],\
-                                       self.colors['native'])
+        print '%s%s%s ( %s%s €%s ) :' % (\
+            self.colors['purple'], ad_list['title'].encode('utf-8'),\
+            self.colors['native'], self.colors['green'], ad_list['price'],
+            self.colors['native'])
+        print '  Adresse: %s%s%s' %  (self.colors['bold'], ad_list['address'], self.colors['native'])
+        print '  Catégorie: %s' %  ad_list['category']
+        print '  ID: %s' % ad_list['id']
         print '  Description:'
         print ad_list['description'].encode('utf-8')
         print self.colors['native']
@@ -235,65 +244,65 @@ class LeBonCoin(object):
 
         # Display informations
         for i in ads_list:
-            print '%s%s%s ( %s € ) :' % (\
-                self.colors['bold'], ads_list[i]['title'].encode('utf-8'),\
-                self.colors['native'], ads_list[i]['price'])
-            print '  ID: %s%s%s' % (self.colors['bold'],\
-                                    ads_list[i]['id'],\
-                                    self.colors['native'])
-            print '  views: %s%s%s' % (self.colors['bold'],\
+            print '%s%s%s ( %s%s €%s ) :' % (\
+                self.colors['purple'], ads_list[i]['title'].encode('utf-8'),\
+                self.colors['native'], self.colors['green'], ads_list[i]['price'],
+                self.colors['native'])
+            print '  Vues: %s%s%s' % (self.colors['bold'],\
                                        ads_list[i]['views'],\
                                        self.colors['native'])
-            print '  clics: %s%s%s' % (self.colors['bold'],\
+            print '  Clics: %s%s%s' % (self.colors['bold'],\
                                        ads_list[i]['clics'],\
                                        self.colors['native'])
-            print '  mails: %s%s%s' % (self.colors['bold'],\
+            print '  Mails: %s%s%s' % (self.colors['bold'],\
                                        ads_list[i]['mails'],\
                                        self.colors['native'])
-            if self.profile['verbose']:
-                print '  Category: %s' % ads_list[i]['category']
+            print '  ID: %s' % ads_list[i]['id']
+            print '  Catégorie: %s' % ads_list[i]['category']
 
-
+    def display_search(self, keywords, region='ile_de_france', localisation=None):
+        """ Display the results of the search. """
+        ads_list = self.get_search(keywords, region=region, localisation=localisation)
+        for i in ads_list:
+            print '%s%s%s ( %s%s €%s ) :' % (\
+                self.colors['purple'], ads_list[i]['title'].encode('utf-8'),\
+                self.colors['native'], self.colors['green'], ads_list[i]['price'],
+                self.colors['native'])
+            print '  Adresse: %s%s%s' %  (self.colors['bold'], ads_list[i]['address'], self.colors['native'])
+            print '  Catégorie: %s' %  ads_list[i]['category']
+            print '  ID: %s' % ads_list[i]['id']
 
 if __name__ == '__main__':
     CSV_ROOT_PATH = '.'
     PARSER = ArgumentParser()
 
-    PARSER.add_argument('--show',
-                        metavar='[ID]',
-                        nargs=1,
-                        help='Show all ads or just one')
-    PARSER.add_argument('--category',
-                        metavar='[CATEGORY]',
-                        nargs=1,
-                        default=None,
-                        help='Force one category')
-    PARSER.add_argument('--search',
-                        metavar='[TAG]',
-                        nargs=1,
-                        help='Search')
-    PARSER.add_argument('--verbose',
-                        action='store_true',
-                        default=False,
-                        help='Enable verbose mode')
-    PARSER.add_argument('--uncolor',
-                        action='store_false',
-                        default=True,
-                        help='Disable color mode')
+    SUBPARSERS = PARSER.add_subparsers(help='commands')
+
+    # A dashboard command
+    DASHBOARD_PARSER = SUBPARSERS.add_parser('dashboard', help='List dashboard informations')
+    DASHBOARD_PARSER.add_argument('--force-authentication', '-f', action='store_true',
+                                  default=False, help='To force the authentication.')
+
+    # An ad command
+    AD_PARSER = SUBPARSERS.add_parser('ad', help='Display a particulary ad')
+    AD_PARSER.add_argument('id', action='store', help='ID of the ad')
+    AD_PARSER.add_argument('category', action='store',
+                           help='Category of the ad')
+
+    # A delete command
+    SEARCH_PARSER = SUBPARSERS.add_parser('search', help='Search ads')
+    SEARCH_PARSER.add_argument('keywords', action='store', help='Keywords of the search')
+    SEARCH_PARSER.add_argument('--localisation', '-l', default=None, action='store',
+                               help='Choose a particular localisation')
+
     ARGS = PARSER.parse_args()
 
-    LBC = LeBonCoin(CSV_ROOT_PATH, verbose=ARGS.verbose, color=ARGS.uncolor)
-    LBC.authentication()
+    LBC = LeBonCoin(CSV_ROOT_PATH)
 
-    # LBC.search()
-
-    if ARGS.show is not None:
-        if ARGS.show[0] == 'all':
-            LBC.display_dashboard()
-        else:
-            if ARGS.category is not None:
-                LBC.display_ad(ARGS.show[0], ad_category=ARGS.category[0])
-            else:
-                LBC.display_ad(ARGS.show[0])
-    elif ARGS.search is not None:
-        LBC.search(ARGS.search[0])
+    if argv[1] == 'dashboard':
+        LBC.authentication(force=ARGS.force_authentication)
+        LBC.display_dashboard()
+    elif argv[1] == 'ad':
+        LBC.display_ad(ARGS.id, ARGS.category)
+    elif argv[1] == 'search':
+        LBC.display_search(ARGS.keywords, localisation=ARGS.localisation)
