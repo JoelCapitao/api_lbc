@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+3.3.0
+-----
+
+2016/11/26
+
+### Changes
+
+Display ad's URL.
+
 3.2.0
 -----
 

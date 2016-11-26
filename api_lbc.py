@@ -230,9 +230,12 @@ class LeBonCoin(object):
             self.colors['purple'], ad_list['title'].encode('utf-8'),\
             self.colors['native'], self.colors['green'], ad_list['price'],
             self.colors['native']))
-        print('  Adresse: %s%s%s' %  (self.colors['bold'],
-                                      ad_list['address'],
-                                      self.colors['native']))
+        print('  Adresse: %s%s%s' % (self.colors['bold'],
+                                     ad_list['address'],
+                                     self.colors['native']))
+        print('  URL: %s%s%s' % (self.colors['bold'],
+                                 ad_list['url'],
+                                 self.colors['native']))
         print('  Key: %s:%s' % (ad_list['id'], ad_list['category']))
         print('  Description:')
         print(ad_list['description'].encode('utf-8'))
