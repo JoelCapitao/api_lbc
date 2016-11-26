@@ -27,7 +27,7 @@ python api_lbc.py dashboard
 
 
 # Display a particular ad
-python api_lbc.py ad 1048998842 consoles_jeux_video
+python api_lbc.py ad 1048998842:consoles_jeux_video
 
 # Search an ad
 python api_lbc.py search "Vélo VTT"

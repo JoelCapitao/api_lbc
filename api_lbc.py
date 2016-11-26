@@ -106,12 +106,13 @@ class LeBonCoin(object):
         return True
 
 
-    def get_ad(self, ad_id, ad_category):
+    def get_ad(self, ad_key):
         """ Display an ad information. """
         ad_list = {}
-        ad_list['url'] = 'https://www.leboncoin.fr/%s/%s.htm?ca=12_s' % (ad_category, ad_id)
-        ad_list['category'] = ad_category
-        ad_list['id'] = ad_id
+        ad_list['id'] = ad_key.split(':')[0]
+        ad_list['category'] = ad_key.split(':')[1]
+        ad_list['url'] = 'https://www.leboncoin.fr/%s/%s.htm?ca=12_s' \
+            % (ad_list['category'], ad_list['id'])
 
         if not self.download_web_page(ad_list['url']):
             print('%sThis ad may not exist...%s' % (self.colors['red'], self.colors['native']))
@@ -219,9 +220,9 @@ class LeBonCoin(object):
     ##    DISPLAY    ##
     ###################
 
-    def display_ad(self, ad_id, ad_category):
+    def display_ad(self, ad_key):
         """ Display an ad. """
-        ad_list = self.get_ad(ad_id, ad_category)
+        ad_list = self.get_ad(ad_key)
         if ad_list == {}:
             return False
         # Display informations
@@ -232,8 +233,7 @@ class LeBonCoin(object):
         print('  Adresse: %s%s%s' %  (self.colors['bold'],
                                       ad_list['address'],
                                       self.colors['native']))
-        print('  Catégorie: %s' %  ad_list['category'])
-        print('  ID: %s' % ad_list['id'])
+        print('  Key: %s:%s' % (ad_list['id'], ad_list['category']))
         print('  Description:')
         print(ad_list['description'].encode('utf-8'))
         print(self.colors['native'])
@@ -272,8 +272,7 @@ class LeBonCoin(object):
             print('  Mails: %s%s%s' % (self.colors['bold'],\
                                        ads_list[i]['mails'],\
                                        self.colors['native']))
-            print('  ID: %s' % ads_list[i]['id'])
-            print('  Catégorie: %s' % ads_list[i]['category'])
+            print('  Key: %s:%s' % (ads_list[i]['id'], ads_list[i]['category']))
 
     def display_search(self, keywords, filters=None):
         """ Display the results of the search. """
@@ -295,8 +294,7 @@ class LeBonCoin(object):
                 print('  Adresse: %s%s%s' %  (self.colors['bold'],
                                               ads_list[i]['address'].encode('utf-8'),
                                               self.colors['native']))
-                print('  Catégorie: %s' %  ads_list[i]['category'])
-                print('  ID: %s' % ads_list[i]['id'])
+                print('  Key: %s:%s' % (ads_list[i]['id'], ads_list[i]['category']))
 
 if __name__ == '__main__':
     CSV_ROOT_PATH = '.'
@@ -313,9 +311,7 @@ if __name__ == '__main__':
 
     # An ad command
     AD_PARSER = SUBPARSERS.add_parser('ad', help='Display a particulary ad')
-    AD_PARSER.add_argument('id', action='store', help='ID of the ad')
-    AD_PARSER.add_argument('category', action='store',
-                           help='Category of the ad')
+    AD_PARSER.add_argument('key', action='store', help='ID:CATEGORY of the ad')
     AD_PARSER.add_argument('--uncolor', default=False, action='store_true',
                            help='Disable coloration')
 
@@ -343,7 +339,7 @@ if __name__ == '__main__':
         LBC.authentication(force=ARGS.force_authentication)
         LBC.display_dashboard()
     elif argv[1] == 'ad':
-        LBC.display_ad(ARGS.id, ARGS.category)
+        LBC.display_ad(ARGS.key)
     elif argv[1] == 'search':
         LBC.display_search(ARGS.keywords, filters={'localisation': ARGS.localisation,
                                                    'price_min': int(ARGS.price_min),

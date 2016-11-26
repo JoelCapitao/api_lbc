@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+3.2.0
+-----
+
+2016/11/26
+
+### Changes
+
+Key display is different and more simple.
+
+
 3.1.0
 -----
 
