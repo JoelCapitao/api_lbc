@@ -1,8 +1,9 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 """ This script can get informations from website LeBonCoin """
 
 # Standard library imports
+from __future__ import print_function
 from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime
@@ -72,7 +73,10 @@ class LeBonCoin(object):
                 cookies = cookiejar_from_dict(load(cookie_jar_file))
                 self.profile['session'].cookies = cookies
         else:
-            self.profile['username'] = raw_input('Username: ')
+            # Thank you, python2-3 team, for making such a fantastic mess with
+            # input/raw_input :-)
+            real_raw_input = vars(__builtins__).get('raw_input', input)
+            self.profile['username'] = real_raw_input('Username: ')
             self.profile['password'] = getpass()
             self.cookie_gen()
 
@@ -146,7 +150,7 @@ class LeBonCoin(object):
         ad_list['id'] = ad_id
 
         if not self.download_web_page(ad_list['url']):
-            print '%sThis ad may not exist...%s' % (self.colors['red'], self.colors['native'])
+            print('%sThis ad may not exist...%s' % (self.colors['red'], self.colors['native']))
             return {}
         # Generate a soup
         with open(self.tmp_html_path, 'r') as tmp_html_file:
@@ -218,18 +222,18 @@ class LeBonCoin(object):
         if ad_list == {}:
             return False
         # Display informations
-        print '%s%s%s ( %s%s €%s ) :' % (\
+        print('%s%s%s ( %s%s €%s ) :' % (\
             self.colors['purple'], ad_list['title'].encode('utf-8'),\
             self.colors['native'], self.colors['green'], ad_list['price'],
-            self.colors['native'])
-        print '  Adresse: %s%s%s' %  (self.colors['bold'],
+            self.colors['native']))
+        print('  Adresse: %s%s%s' %  (self.colors['bold'],
                                       ad_list['address'],
-                                      self.colors['native'])
-        print '  Catégorie: %s' %  ad_list['category']
-        print '  ID: %s' % ad_list['id']
-        print '  Description:'
-        print ad_list['description'].encode('utf-8')
-        print self.colors['native']
+                                      self.colors['native']))
+        print('  Catégorie: %s' %  ad_list['category'])
+        print('  ID: %s' % ad_list['id'])
+        print('  Description:')
+        print(ad_list['description'].encode('utf-8'))
+        print(self.colors['native'])
 
     def display_dashboard(self):
         """ Display a dashboard. """
@@ -252,21 +256,21 @@ class LeBonCoin(object):
 
         # Display informations
         for i in ads_list:
-            print '%s%s%s ( %s%s €%s ) :' % (\
+            print('%s%s%s ( %s%s €%s ) :' % (\
                 self.colors['purple'], ads_list[i]['title'].encode('utf-8'),\
                 self.colors['native'], self.colors['green'], ads_list[i]['price'],
-                self.colors['native'])
-            print '  Vues: %s%s%s' % (self.colors['bold'],\
+                self.colors['native']))
+            print('  Vues: %s%s%s' % (self.colors['bold'],\
                                        ads_list[i]['views'],\
-                                       self.colors['native'])
-            print '  Clics: %s%s%s' % (self.colors['bold'],\
+                                       self.colors['native']))
+            print('  Clics: %s%s%s' % (self.colors['bold'],\
                                        ads_list[i]['clics'],\
-                                       self.colors['native'])
-            print '  Mails: %s%s%s' % (self.colors['bold'],\
+                                       self.colors['native']))
+            print('  Mails: %s%s%s' % (self.colors['bold'],\
                                        ads_list[i]['mails'],\
-                                       self.colors['native'])
-            print '  ID: %s' % ads_list[i]['id']
-            print '  Catégorie: %s' % ads_list[i]['category']
+                                       self.colors['native']))
+            print('  ID: %s' % ads_list[i]['id'])
+            print('  Catégorie: %s' % ads_list[i]['category'])
 
     def display_search(self, keywords, filters=None):
         """ Display the results of the search. """
@@ -281,15 +285,15 @@ class LeBonCoin(object):
         for i in ads_list:
             if int(ads_list[i]['price']) >= filters_dict['price_min'] \
                and filters_dict['price_max'] >= int(ads_list[i]['price']):
-                print '%s%s%s ( %s%s €%s ) :' % (\
+                print('%s%s%s ( %s%s €%s ) :' % (\
                     self.colors['purple'], ads_list[i]['title'].encode('utf-8'),\
                     self.colors['native'], self.colors['green'], ads_list[i]['price'],
-                    self.colors['native'])
-                print '  Adresse: %s%s%s' %  (self.colors['bold'],
+                    self.colors['native']))
+                print('  Adresse: %s%s%s' %  (self.colors['bold'],
                                               ads_list[i]['address'].encode('utf-8'),
-                                              self.colors['native'])
-                print '  Catégorie: %s' %  ads_list[i]['category']
-                print '  ID: %s' % ads_list[i]['id']
+                                              self.colors['native']))
+                print('  Catégorie: %s' %  ads_list[i]['category'])
+                print('  ID: %s' % ads_list[i]['id'])
 
 if __name__ == '__main__':
     CSV_ROOT_PATH = '.'

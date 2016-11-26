@@ -1,5 +1,9 @@
 # API LeBonCoin
 
+
+[![Build Status](https://travis-ci.org/Petlefeu/api_lbc.svg?branch=master)](https://travis-ci.org/Petlefeu/api_lbc)
+
+
 ## Usage
 ```
 usage: api_lbc.py [-h] {dashboard,ad,search} ...
