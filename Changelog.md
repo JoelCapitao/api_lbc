@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+3.0.0
+-----
+
+2016/11/26
+
+### Changes
+
+api_lbc.py is now compatible with python 3. There is too Travis CI.
+
+
 2.2.1
 -----
 
