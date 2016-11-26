@@ -2,18 +2,19 @@
 #-*- coding: utf-8 -*-
 """ This script can get informations from website LeBonCoin """
 
-# from pdb import set_trace as st
+# Standard library imports
 from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime
 from getpass import getpass
 from os import remove, path
 from pickle import load, dump
-from time import time
 from sys import argv
+from time import time
+# Related third party imports
+from bs4 import BeautifulSoup
 from requests import Session
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
-import bs4 as BeautifulSoup
 
 def get_timestamp():
     """ Return a timestamp """
@@ -111,7 +112,7 @@ class LeBonCoin(object):
 
         # Generate a soup
         with open(self.tmp_html_path, 'r') as tmp_html_file:
-            soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
+            soup = BeautifulSoup(tmp_html_file.read(), 'lxml')
 
         # Cleaning
         remove(self.tmp_html_path)
@@ -149,7 +150,7 @@ class LeBonCoin(object):
             return {}
         # Generate a soup
         with open(self.tmp_html_path, 'r') as tmp_html_file:
-            soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
+            soup = BeautifulSoup(tmp_html_file.read(), 'lxml')
 
         ad_list['description'] = soup.find('p', 'value', 'description').text
         ad_list['title'] = soup.find('button', 'share twitter trackable').attrs['data-text']
@@ -172,7 +173,7 @@ class LeBonCoin(object):
 
         # Generate a soup
         with open(self.tmp_html_path, 'r') as tmp_html_file:
-            soup = BeautifulSoup.BeautifulSoup(tmp_html_file.read(), 'lxml')
+            soup = BeautifulSoup(tmp_html_file.read(), 'lxml')
 
         # Create a list of ads
         ads_list = {}
