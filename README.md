@@ -31,6 +31,8 @@ python api_lbc.py search "vélo à roues" --localisation paris
 ```
 
 ## Changelog
+- 2.2.0:
+  * Add filters feature to search
 - 2.1.0:
   * Add feature to disable coloration
   * Bug fix : Address not encoded in utf-8

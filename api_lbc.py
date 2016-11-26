@@ -106,7 +106,8 @@ class LeBonCoin(object):
             localisation_url = ''
         else:
             localisation_url = '%s/' % localisation
-        self.download_web_page('https://www.leboncoin.fr/annonces/offres/%s/%s?th=1&q=%s&parrot=0' % (region, localisation_url, keywords))
+        self.download_web_page('https://www.leboncoin.fr/annonces/offres/%s/%s?th=1&q=%s&parrot=0'
+                               % (region, localisation_url, keywords))
 
         # Generate a soup
         with open(self.tmp_html_path, 'r') as tmp_html_file:
@@ -156,7 +157,8 @@ class LeBonCoin(object):
             ad_list['price'] = soup.find('h2', 'item_price')['content']
         except TypeError:
             ad_list['price'] = 0
-        ad_list['address'] = soup.find('div', 'line line_city').find('span', 'value').string.split('\n')[0]
+        ad_list['address'] = soup.find('div', 'line line_city').find(
+            'span', 'value').string.split('\n')[0]
 
         # Cleaning
         remove(self.tmp_html_path)
@@ -181,7 +183,8 @@ class LeBonCoin(object):
             ad_dict['id'] = ad_dict['url'].split('/')[4].split('.')[0]
             ad_dict['title'] = ad_soup.a.string
             try:
-                ad_dict['price'] = int(ad_soup.find('div', 'price').string.encode('utf-8').replace(' \xe2\x82\xac', ''))
+                ad_dict['price'] = int(ad_soup.find('div', 'price').string.encode(
+                    'utf-8').replace(' \xe2\x82\xac', ''))
             except AttributeError:
                 ad_dict['price'] = 0
             ad_dict['views'] = -1
@@ -218,7 +221,9 @@ class LeBonCoin(object):
             self.colors['purple'], ad_list['title'].encode('utf-8'),\
             self.colors['native'], self.colors['green'], ad_list['price'],
             self.colors['native'])
-        print '  Adresse: %s%s%s' %  (self.colors['bold'], ad_list['address'], self.colors['native'])
+        print '  Adresse: %s%s%s' %  (self.colors['bold'],
+                                      ad_list['address'],
+                                      self.colors['native'])
         print '  Catégorie: %s' %  ad_list['category']
         print '  ID: %s' % ad_list['id']
         print '  Description:'
@@ -262,17 +267,28 @@ class LeBonCoin(object):
             print '  ID: %s' % ads_list[i]['id']
             print '  Catégorie: %s' % ads_list[i]['category']
 
-    def display_search(self, keywords, region='ile_de_france', localisation=None):
+    def display_search(self, keywords, filters=None):
         """ Display the results of the search. """
-        ads_list = self.get_search(keywords, region=region, localisation=localisation)
+        filters_dict = {'region': 'ile_de_france',
+                        'localisation': None,
+                        'price_min': 0,
+                        'price_max': 999999}
+        filters_dict.update(filters)
+        ads_list = self.get_search(keywords,
+                                   region=filters_dict['region'],
+                                   localisation=filters_dict['localisation'])
         for i in ads_list:
-            print '%s%s%s ( %s%s €%s ) :' % (\
-                self.colors['purple'], ads_list[i]['title'].encode('utf-8'),\
-                self.colors['native'], self.colors['green'], ads_list[i]['price'],
-                self.colors['native'])
-            print '  Adresse: %s%s%s' %  (self.colors['bold'], ads_list[i]['address'].encode('utf-8'), self.colors['native'])
-            print '  Catégorie: %s' %  ads_list[i]['category']
-            print '  ID: %s' % ads_list[i]['id']
+            if int(ads_list[i]['price']) >= filters_dict['price_min'] \
+               and filters_dict['price_max'] >= int(ads_list[i]['price']):
+                print '%s%s%s ( %s%s €%s ) :' % (\
+                    self.colors['purple'], ads_list[i]['title'].encode('utf-8'),\
+                    self.colors['native'], self.colors['green'], ads_list[i]['price'],
+                    self.colors['native'])
+                print '  Adresse: %s%s%s' %  (self.colors['bold'],
+                                              ads_list[i]['address'].encode('utf-8'),
+                                              self.colors['native'])
+                print '  Catégorie: %s' %  ads_list[i]['category']
+                print '  ID: %s' % ads_list[i]['id']
 
 if __name__ == '__main__':
     CSV_ROOT_PATH = '.'
@@ -300,6 +316,10 @@ if __name__ == '__main__':
     SEARCH_PARSER.add_argument('keywords', action='store', help='Keywords of the search')
     SEARCH_PARSER.add_argument('--localisation', '-l', default=None, action='store',
                                help='Choose a particular localisation')
+    SEARCH_PARSER.add_argument('--price-max', default=999999, action='store',
+                               help='Set a max price')
+    SEARCH_PARSER.add_argument('--price-min', default=0, action='store',
+                               help='Set a in price')
     SEARCH_PARSER.add_argument('--uncolor', default=False, action='store_true',
                                help='Disable coloration')
 
@@ -313,4 +333,6 @@ if __name__ == '__main__':
     elif argv[1] == 'ad':
         LBC.display_ad(ARGS.id, ARGS.category)
     elif argv[1] == 'search':
-        LBC.display_search(ARGS.keywords, localisation=ARGS.localisation)
+        LBC.display_search(ARGS.keywords, filters={'localisation': ARGS.localisation,
+                                                   'price_min': int(ARGS.price_min),
+                                                   'price_max': int(ARGS.price_max)})
