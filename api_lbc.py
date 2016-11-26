@@ -105,42 +105,6 @@ class LeBonCoin(object):
             tmp_html_file.write(req_url.text.encode('utf-8'))
         return True
 
-    def get_search(self, keywords, region='ile_de_france', localisation=None):
-        """ Search something on LBC. """
-        if localisation is None:
-            localisation_url = ''
-        else:
-            localisation_url = '%s/' % localisation
-        self.download_web_page('https://www.leboncoin.fr/annonces/offres/%s/%s?th=1&q=%s&parrot=0'
-                               % (region, localisation_url, keywords))
-
-        # Generate a soup
-        with open(self.tmp_html_path, 'r') as tmp_html_file:
-            soup = BeautifulSoup(tmp_html_file.read(), 'lxml')
-
-        # Cleaning
-        remove(self.tmp_html_path)
-
-        ads_list = {}
-        for i, ad_soup in enumerate(soup('a', 'list_item')):
-            ad_dict = {}
-            try:
-                ad_dict['category'] = ad_soup.attrs['href'].split('/')[3]
-                ad_dict['id'] = ad_soup.attrs['href'].split('/')[4].split('.')[0]
-                ad_dict['title'] = ad_soup.attrs['title']
-            except IndexError:
-                break
-            try:
-                ad_dict['price'] = ad_soup.h3.attrs['content']
-            except AttributeError:
-                ad_dict['price'] = 0
-            except KeyError:
-                ad_dict['price'] = 0
-            ad_dict['address'] = ad_soup.find('meta').attrs['content']
-            ads_list[i] = ad_dict
-
-        return ads_list
-
 
     def get_ad(self, ad_id, ad_category):
         """ Display an ad information. """
@@ -212,6 +176,45 @@ class LeBonCoin(object):
         return ads_list_sorted
 
 
+    def get_search(self, keywords, filters):
+        """ Search something on LBC. """
+        if filters['localisation'] is None:
+            localisation_url = ''
+        else:
+            localisation_url = '%s/' % filters['localisation']
+        self.download_web_page(
+            'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s'
+            % (filters['region'], localisation_url, int(filters['sort_by_price']),
+               keywords, int(filters['search_in_title'])))
+
+        # Generate a soup
+        with open(self.tmp_html_path, 'r') as tmp_html_file:
+            soup = BeautifulSoup(tmp_html_file.read(), 'lxml')
+
+        # Cleaning
+        remove(self.tmp_html_path)
+
+        ads_list = {}
+        for i, ad_soup in enumerate(soup('a', 'list_item')):
+            ad_dict = {}
+            try:
+                ad_dict['category'] = ad_soup.attrs['href'].split('/')[3]
+                ad_dict['id'] = ad_soup.attrs['href'].split('/')[4].split('.')[0]
+                ad_dict['title'] = ad_soup.attrs['title']
+            except IndexError:
+                break
+            try:
+                ad_dict['price'] = ad_soup.h3.attrs['content']
+            except AttributeError:
+                ad_dict['price'] = 0
+            except KeyError:
+                ad_dict['price'] = 0
+            ad_dict['address'] = ad_soup.find('meta').attrs['content']
+            ads_list[i] = ad_dict
+
+        return ads_list
+
+
     ###################
     ##    DISPLAY    ##
     ###################
@@ -277,11 +280,11 @@ class LeBonCoin(object):
         filters_dict = {'region': 'ile_de_france',
                         'localisation': None,
                         'price_min': 0,
-                        'price_max': 999999}
+                        'price_max': 999999,
+                        'sort_by_price': False,
+                        'search_in_title': False}
         filters_dict.update(filters)
-        ads_list = self.get_search(keywords,
-                                   region=filters_dict['region'],
-                                   localisation=filters_dict['localisation'])
+        ads_list = self.get_search(keywords, filters_dict)
         for i in ads_list:
             if int(ads_list[i]['price']) >= filters_dict['price_min'] \
                and filters_dict['price_max'] >= int(ads_list[i]['price']):
@@ -327,6 +330,10 @@ if __name__ == '__main__':
                                help='Set a in price')
     SEARCH_PARSER.add_argument('--uncolor', default=False, action='store_true',
                                help='Disable coloration')
+    SEARCH_PARSER.add_argument('--search-in-title', default=False, action='store_true',
+                               help='Search keywords only in the ad\'s title')
+    SEARCH_PARSER.add_argument('--sort-by-price', default=False, action='store_true',
+                               help='BETA: Sort list by price')
 
     ARGS = PARSER.parse_args()
 
@@ -340,4 +347,6 @@ if __name__ == '__main__':
     elif argv[1] == 'search':
         LBC.display_search(ARGS.keywords, filters={'localisation': ARGS.localisation,
                                                    'price_min': int(ARGS.price_min),
-                                                   'price_max': int(ARGS.price_max)})
+                                                   'price_max': int(ARGS.price_max),
+                                                   'sort_by_price': ARGS.sort_by_price,
+                                                   'search_in_title': ARGS.search_in_title})

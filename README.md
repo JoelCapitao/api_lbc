@@ -30,6 +30,9 @@ python api_lbc.py dashboard
 python api_lbc.py ad 1048998842 consoles_jeux_video
 
 # Search an ad
-python api_lbc.py search "vélo à roues"
-python api_lbc.py search "vélo à roues" --localisation paris
+python api_lbc.py search "Vélo VTT"
+python api_lbc.py search "Vélo VTT" --localisation paris
+
+# Search more complex
+python api_lbc.py search --localisation paris "Vélo VTT" --price-max 500 --price-min 100 --search-in-title
 ```

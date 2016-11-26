@@ -1,6 +1,21 @@
 CHANGELOG
 =========
 
+3.1.0
+-----
+
+2016/11/26
+
+### New Features
+
+Add sort-by-price (still in beta) and serch-in-title
+
+### Changes
+
+The dict filters is more used in the code. The url call in get_search is changed.
+
+
+
 3.0.0
 -----
 
