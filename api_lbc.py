@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 """ This script can get informations from website LeBonCoin """
 
-from pdb import set_trace as st
+# from pdb import set_trace as st
 from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime
@@ -23,7 +23,7 @@ def get_timestamp():
 
 class LeBonCoin(object):
     """ Utils class for api_lbc """
-    def __init__(self, csv_root_path, verbose=False, color=True):
+    def __init__(self, csv_root_path, verbose=False, uncolor=False):
         """ init"""
         self.tmp_html_path = './tmp_page.html'
         self.cookie_jar_path = '/tmp/cookie_api_lbc.jar'
@@ -35,7 +35,7 @@ class LeBonCoin(object):
             'session': Session(),
             'verbose': verbose,
         }
-        if color:
+        if not uncolor:
             self.colors = {
                 'red': '\033[1;31m',
                 'green': '\033[1;32m',
@@ -270,7 +270,7 @@ class LeBonCoin(object):
                 self.colors['purple'], ads_list[i]['title'].encode('utf-8'),\
                 self.colors['native'], self.colors['green'], ads_list[i]['price'],
                 self.colors['native'])
-            print '  Adresse: %s%s%s' %  (self.colors['bold'], ads_list[i]['address'], self.colors['native'])
+            print '  Adresse: %s%s%s' %  (self.colors['bold'], ads_list[i]['address'].encode('utf-8'), self.colors['native'])
             print '  Catégorie: %s' %  ads_list[i]['category']
             print '  ID: %s' % ads_list[i]['id']
 
@@ -284,22 +284,28 @@ if __name__ == '__main__':
     DASHBOARD_PARSER = SUBPARSERS.add_parser('dashboard', help='List dashboard informations')
     DASHBOARD_PARSER.add_argument('--force-authentication', '-f', action='store_true',
                                   default=False, help='To force the authentication.')
+    DASHBOARD_PARSER.add_argument('--uncolor', default=False, action='store_true',
+                                  help='Disable coloration')
 
     # An ad command
     AD_PARSER = SUBPARSERS.add_parser('ad', help='Display a particulary ad')
     AD_PARSER.add_argument('id', action='store', help='ID of the ad')
     AD_PARSER.add_argument('category', action='store',
                            help='Category of the ad')
+    AD_PARSER.add_argument('--uncolor', default=False, action='store_true',
+                           help='Disable coloration')
 
     # A delete command
     SEARCH_PARSER = SUBPARSERS.add_parser('search', help='Search ads')
     SEARCH_PARSER.add_argument('keywords', action='store', help='Keywords of the search')
     SEARCH_PARSER.add_argument('--localisation', '-l', default=None, action='store',
                                help='Choose a particular localisation')
+    SEARCH_PARSER.add_argument('--uncolor', default=False, action='store_true',
+                               help='Disable coloration')
 
     ARGS = PARSER.parse_args()
 
-    LBC = LeBonCoin(CSV_ROOT_PATH)
+    LBC = LeBonCoin(CSV_ROOT_PATH, uncolor=ARGS.uncolor)
 
     if argv[1] == 'dashboard':
         LBC.authentication(force=ARGS.force_authentication)
