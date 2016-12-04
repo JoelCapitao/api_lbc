@@ -6,6 +6,10 @@ CHANGELOG
 
 2016/12/04
 
+### New Features
+
+Pass username in option.
+
 ### Changes
 
 Detect failed authentication.

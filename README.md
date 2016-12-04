@@ -20,12 +20,15 @@ optional arguments:
 
 
 # dashboard
-usage: api_lbc.py dashboard [-h] [--force-authentication] [--uncolor]
+usage: api_lbc.py dashboard [-h] [--force-authentication]
+                            [--username USERNAME] [--uncolor]
 
 optional arguments:
   -h, --help            show this help message and exit
   --force-authentication, -f
                         To force the authentication.
+  --username USERNAME, -u USERNAME
+                        Username to log in.
   --uncolor             Disable coloration
 
 
