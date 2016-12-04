@@ -9,6 +9,7 @@ CHANGELOG
 ### Changes
 
 Detect failed authentication.
+Detect authentication expiration.
 
 
 3.4.0

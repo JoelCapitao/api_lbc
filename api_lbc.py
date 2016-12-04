@@ -11,13 +11,11 @@ from getpass import getpass
 from os import remove, path
 from pickle import load, dump
 from sys import argv
-from time import time
+from time import time, mktime
 # Related third party imports
 from bs4 import BeautifulSoup
 from requests import Session
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
-
-# from pdb import set_trace as st
 
 def get_timestamp():
     """ Return a timestamp """
@@ -73,8 +71,12 @@ class LeBonCoin(object):
         if path.isfile(self.cookie_jar_path) and not force:
             with open(self.cookie_jar_path) as cookie_jar_file:
                 cookies = cookiejar_from_dict(load(cookie_jar_file))
-                self.profile['session'].cookies = cookies
-        else:
+                timestamp_now = mktime(datetime.utcnow().timetuple())
+                if int(cookies['token_expire']) > timestamp_now:
+                    self.profile['session'].cookies = cookies
+                else:
+                    force = True
+        if not path.isfile(self.cookie_jar_path) or force:
             # Thank you, python2-3 team, for making such a fantastic mess with
             # input/raw_input :-)
             real_raw_input = vars(__builtins__).get('raw_input', input)
