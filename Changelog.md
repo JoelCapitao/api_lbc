@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+3.5.0
+-----
+
+2016/12/04
+
+### Changes
+
+Detect failed authentication.
+
+
 3.4.0
 -----
 

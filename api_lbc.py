@@ -17,6 +17,8 @@ from bs4 import BeautifulSoup
 from requests import Session
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 
+# from pdb import set_trace as st
+
 def get_timestamp():
     """ Return a timestamp """
     actual_time = time()
@@ -86,9 +88,14 @@ class LeBonCoin(object):
         url = 'https://compteperso.leboncoin.fr/store/verify_login/0'
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'st_username': self.profile['username'], 'st_passwd': self.profile['password']}
-        self.profile['session'].post(url, headers=headers, data=payload)
-        with open(self.cookie_jar_path, 'w') as cookie_jar_file:
-            dump(dict_from_cookiejar(self.profile['session'].cookies), cookie_jar_file)
+        req_url = self.profile['session'].post(url, headers=headers, data=payload)
+        # Generate a soup
+        soup = BeautifulSoup(req_url.text, 'lxml')
+        if soup.find('span', 'error'):
+            print('Authentication failed...')
+        else:
+            with open(self.cookie_jar_path, 'w') as cookie_jar_file:
+                dump(dict_from_cookiejar(self.profile['session'].cookies), cookie_jar_file)
 
 
     ###################
