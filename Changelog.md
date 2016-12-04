@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+3.4.0
+-----
+
+2016/12/04
+
+### Changes
+
+Display more pages during search (3).
+
+
+
 3.3.0
 -----
 
@@ -10,6 +21,8 @@ CHANGELOG
 
 Display ad's URL.
 
+
+
 3.2.0
 -----
 
@@ -18,6 +31,7 @@ Display ad's URL.
 ### Changes
 
 Key display is different and more simple.
+
 
 
 3.1.0

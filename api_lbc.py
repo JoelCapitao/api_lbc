@@ -177,16 +177,16 @@ class LeBonCoin(object):
         return ads_list_sorted
 
 
-    def get_search(self, keywords, filters):
+    def get_search(self, keywords, filters, page_num=1):
         """ Search something on LBC. """
         if filters['localisation'] is None:
             localisation_url = ''
         else:
             localisation_url = '%s/' % filters['localisation']
         self.download_web_page(
-            'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s'
+            'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s&o=%s'
             % (filters['region'], localisation_url, int(filters['sort_by_price']),
-               keywords, int(filters['search_in_title'])))
+               keywords, int(filters['search_in_title']), page_num))
 
         # Generate a soup
         with open(self.tmp_html_path, 'r') as tmp_html_file:
@@ -196,7 +196,7 @@ class LeBonCoin(object):
         remove(self.tmp_html_path)
 
         ads_list = {}
-        for i, ad_soup in enumerate(soup('a', 'list_item')):
+        for ad_soup in soup('a', 'list_item'):
             ad_dict = {}
             try:
                 ad_dict['category'] = ad_soup.attrs['href'].split('/')[3]
@@ -211,7 +211,7 @@ class LeBonCoin(object):
             except KeyError:
                 ad_dict['price'] = 0
             ad_dict['address'] = ad_soup.find('meta').attrs['content']
-            ads_list[i] = ad_dict
+            ads_list[ad_dict['id']] = ad_dict
 
         return ads_list
 
@@ -286,18 +286,20 @@ class LeBonCoin(object):
                         'sort_by_price': False,
                         'search_in_title': False}
         filters_dict.update(filters)
-        ads_list = self.get_search(keywords, filters_dict)
-        for i in ads_list:
-            if int(ads_list[i]['price']) >= filters_dict['price_min'] \
-               and filters_dict['price_max'] >= int(ads_list[i]['price']):
+        ads_list = {}
+        for page in range(3):
+            ads_list.update(self.get_search(keywords, filters_dict, page_num=page))
+        for ad_id in ads_list:
+            if int(ads_list[ad_id]['price']) >= filters_dict['price_min'] \
+               and filters_dict['price_max'] >= int(ads_list[ad_id]['price']):
                 print('%s%s%s ( %s%s €%s ) :' % (\
-                    self.colors['purple'], ads_list[i]['title'].encode('utf-8'),\
-                    self.colors['native'], self.colors['green'], ads_list[i]['price'],
+                    self.colors['purple'], ads_list[ad_id]['title'].encode('utf-8'),\
+                    self.colors['native'], self.colors['green'], ads_list[ad_id]['price'],
                     self.colors['native']))
                 print('  Adresse: %s%s%s' %  (self.colors['bold'],
-                                              ads_list[i]['address'].encode('utf-8'),
+                                              ads_list[ad_id]['address'].encode('utf-8'),
                                               self.colors['native']))
-                print('  Key: %s:%s' % (ads_list[i]['id'], ads_list[i]['category']))
+                print('  Key: %s:%s' % (ads_list[ad_id]['id'], ads_list[ad_id]['category']))
 
 if __name__ == '__main__':
     CSV_ROOT_PATH = '.'

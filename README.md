@@ -17,6 +17,49 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+
+
+# dashboard
+usage: api_lbc.py dashboard [-h] [--force-authentication] [--uncolor]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --force-authentication, -f
+                        To force the authentication.
+  --uncolor             Disable coloration
+
+
+# ad
+usage: api_lbc.py ad [-h] [--uncolor] key
+
+positional arguments:
+  key         ID:CATEGORY of the ad
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --uncolor   Disable coloration
+
+
+# search
+usage: api_lbc.py search [-h] [--localisation LOCALISATION]
+                         [--price-max PRICE_MAX] [--price-min PRICE_MIN]
+                         [--uncolor] [--search-in-title] [--sort-by-price]
+                         keywords
+
+positional arguments:
+  keywords              Keywords of the search
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --localisation LOCALISATION, -l LOCALISATION
+                        Choose a particular localisation
+  --price-max PRICE_MAX
+                        Set a max price
+  --price-min PRICE_MIN
+                        Set a in price
+  --uncolor             Disable coloration
+  --search-in-title     Search keywords only in the ad's title
+  --sort-by-price       BETA: Sort list by price
 ```
 
 ## Examples
