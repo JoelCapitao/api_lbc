@@ -11,7 +11,7 @@ from getpass import getpass
 from os import remove, path
 from pickle import load, dump
 from sys import argv
-from time import time
+from time import time, mktime
 # Related third party imports
 from bs4 import BeautifulSoup
 from requests import Session
@@ -66,17 +66,24 @@ class LeBonCoin(object):
     ##   AUTHENTICATION   ##
     ########################
 
-    def authentication(self, force=False):
+    def authentication(self, username=None, force=False):
         """ Authentication """
         if path.isfile(self.cookie_jar_path) and not force:
             with open(self.cookie_jar_path) as cookie_jar_file:
                 cookies = cookiejar_from_dict(load(cookie_jar_file))
-                self.profile['session'].cookies = cookies
-        else:
+                timestamp_now = mktime(datetime.utcnow().timetuple())
+                if int(cookies['token_expire']) > timestamp_now:
+                    self.profile['session'].cookies = cookies
+                else:
+                    force = True
+        if not path.isfile(self.cookie_jar_path) or force:
             # Thank you, python2-3 team, for making such a fantastic mess with
             # input/raw_input :-)
             real_raw_input = vars(__builtins__).get('raw_input', input)
-            self.profile['username'] = real_raw_input('Username: ')
+            if username is None:
+                self.profile['username'] = real_raw_input('Username: ')
+            else:
+                self.profile['username'] = username
             self.profile['password'] = getpass()
             self.cookie_gen()
 
@@ -86,9 +93,14 @@ class LeBonCoin(object):
         url = 'https://compteperso.leboncoin.fr/store/verify_login/0'
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'st_username': self.profile['username'], 'st_passwd': self.profile['password']}
-        self.profile['session'].post(url, headers=headers, data=payload)
-        with open(self.cookie_jar_path, 'w') as cookie_jar_file:
-            dump(dict_from_cookiejar(self.profile['session'].cookies), cookie_jar_file)
+        req_url = self.profile['session'].post(url, headers=headers, data=payload)
+        # Generate a soup
+        soup = BeautifulSoup(req_url.text, 'lxml')
+        if soup.find('span', 'error'):
+            print('Authentication failed...')
+        else:
+            with open(self.cookie_jar_path, 'w') as cookie_jar_file:
+                dump(dict_from_cookiejar(self.profile['session'].cookies), cookie_jar_file)
 
 
     ###################
@@ -311,6 +323,8 @@ if __name__ == '__main__':
     DASHBOARD_PARSER = SUBPARSERS.add_parser('dashboard', help='List dashboard informations')
     DASHBOARD_PARSER.add_argument('--force-authentication', '-f', action='store_true',
                                   default=False, help='To force the authentication.')
+    DASHBOARD_PARSER.add_argument('--username', '-u', action='store',
+                                  default=None, help='Username to log in.')
     DASHBOARD_PARSER.add_argument('--uncolor', default=False, action='store_true',
                                   help='Disable coloration')
 
@@ -341,7 +355,7 @@ if __name__ == '__main__':
     LBC = LeBonCoin(CSV_ROOT_PATH, uncolor=ARGS.uncolor)
 
     if argv[1] == 'dashboard':
-        LBC.authentication(force=ARGS.force_authentication)
+        LBC.authentication(username=ARGS.username, force=ARGS.force_authentication)
         LBC.display_dashboard()
     elif argv[1] == 'ad':
         LBC.display_ad(ARGS.key)
