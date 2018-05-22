@@ -252,6 +252,7 @@ class LeBonCoin(object):
         print('  Description:')
         print(ad_list['description'].encode('utf-8'))
         print(self.colors['native'])
+        return True
 
     def display_dashboard(self):
         """ Display a dashboard. """
