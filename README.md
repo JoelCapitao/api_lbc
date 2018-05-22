@@ -1,8 +1,6 @@
 # API LeBonCoin
 
-
-[![Build Status](https://travis-ci.org/Petlefeu/api_lbc.svg?branch=master)](https://travis-ci.org/Petlefeu/api_lbc)
-
+[![Build Status](https://travis-ci.org/nbeguier/api_lbc.svg?branch=master)](https://travis-ci.org/nbeguier/api_lbc)
 
 ## Usage
 ```
