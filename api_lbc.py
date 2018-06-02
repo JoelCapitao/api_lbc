@@ -337,20 +337,33 @@ if __name__ == '__main__':
 
     # A search command
     SEARCH_PARSER = SUBPARSERS.add_parser('search', help='Search ads')
-    SEARCH_PARSER.add_argument('category', action='store', help='Category of the search')
     SEARCH_PARSER.add_argument('keywords', action='store', help='Keywords of the search')
+    SEARCH_PARSER.add_argument('--category', '-c', default=None, action='store',
+                               help='Set the category of the search')
     SEARCH_PARSER.add_argument('--location', '-l', default=None, action='store',
                                help='Choose a particular location')
     SEARCH_PARSER.add_argument('--price-max', default=999999, action='store',
                                help='Set a max price')
     SEARCH_PARSER.add_argument('--price-min', default=0, action='store',
                                help='Set a in price')
+    SEARCH_PARSER.add_argument('--property-type', default=False, action='store_true',
+                               help='Set the property type')
     SEARCH_PARSER.add_argument('--uncolor', default=False, action='store_true',
                                help='Disable coloration')
+    SEARCH_PARSER.add_argument('--region', default=False, action='store_true',
+                               help='Set the region')
+    SEARCH_PARSER.add_argument('--room-max', default=False, action='store_true',
+                               help='Set the maximum number of rooms')
+    SEARCH_PARSER.add_argument('--room-min', default=False, action='store_true',
+                               help='Set the minimum number of rooms')
     SEARCH_PARSER.add_argument('--search-in-title', default=False, action='store_true',
                                help='Search keywords only in the ad\'s title')
     SEARCH_PARSER.add_argument('--sort-by-price', default=False, action='store_true',
                                help='BETA: Sort list by price')
+    SEARCH_PARSER.add_argument('--surface-max', default=False, action='store_true',
+                               help='Set a max surface')
+    SEARCH_PARSER.add_argument('--surface-min', default=False, action='store_true',
+                               help='Set a min surface')
 
     ARGS = PARSER.parse_args()
 
