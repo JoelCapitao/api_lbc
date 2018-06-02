@@ -348,8 +348,6 @@ if __name__ == '__main__':
                                help='Set a in price')
     SEARCH_PARSER.add_argument('--property-type', default=False, action='store_true',
                                help='Set the property type')
-    SEARCH_PARSER.add_argument('--uncolor', default=False, action='store_true',
-                               help='Disable coloration')
     SEARCH_PARSER.add_argument('--region', default=False, action='store_true',
                                help='Set the region')
     SEARCH_PARSER.add_argument('--room-max', default=False, action='store_true',
@@ -364,6 +362,8 @@ if __name__ == '__main__':
                                help='Set a max surface')
     SEARCH_PARSER.add_argument('--surface-min', default=False, action='store_true',
                                help='Set a min surface')
+    SEARCH_PARSER.add_argument('--uncolor', default=False, action='store_true',
+                               help='Disable coloration')
 
     ARGS = PARSER.parse_args()
 
@@ -380,10 +380,11 @@ if __name__ == '__main__':
                                                    'price_max': int(ARGS.price_max),
                                                    'price_min': int(ARGS.price_min),
                                                    'property_type': int(ARGS.property_type),
-                                                   'uncolor': int(ARGS.uncolor),
                                                    'region': int(ARGS.region),
                                                    'room_max': int(ARGS.room_max),
                                                    'room_min': int(ARGS.room_min),
                                                    'search_in_title': ARGS.search_in_title,
                                                    'sort_by_price': ARGS.sort_by_price,
-                                                   'search_in_title': ARGS.search_in_title})
+                                                   'suface_max': ARGS.surface_max,
+                                                   'surface_min': ARGS.suface_min,
+                                                   'uncolor': int(ARGS.uncolor)})
