@@ -307,7 +307,7 @@ class LeBonCoin(object):
         filters_dict.update(filters)
         ads_list = {}
         for page in range(3):
-            ads_list.update(self.get_search(category, keywords, filters_dict, page_num=page))
+            ads_list.update(self.get_search(keywords, filters_dict, page_num=page))
         for ad_id in ads_list:
             if int(ads_list[ad_id]['price']) >= filters_dict['price_min'] \
                and filters_dict['price_max'] >= int(ads_list[ad_id]['price']):
