@@ -201,7 +201,9 @@ class LeBonCoin(object):
             surface_max = '' if filters['surface_max'] is None else '&sqe=%s' % filters['surface_max']
             room_min = '' if filters['room_min'] is None else '&ros=%s' % filters['room_min']
             room_max = '' if filters['room_max'] is None else '&roe=%s' % filters['room_max']
-            property_type = '&ret=2'
+            property_type = '' if filters['property_type'] is None else
+                            '&ret=1' if filters['property_type'] == 'Maison' else
+                            '&ret=2' if filters['property_type'] == 'Appartement' else
 
             self.download_web_page(
                 'https://www.leboncoin.fr/ventes_immobilieres/offres/%s?th=1&location=%s%s%s%s%s%s%s%s'
