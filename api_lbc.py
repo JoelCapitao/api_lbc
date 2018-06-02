@@ -375,8 +375,15 @@ if __name__ == '__main__':
     elif argv[1] == 'ad':
         LBC.display_ad(ARGS.key)
     elif argv[1] == 'search':
-        LBC.display_search(ARGS.category, ARGS.keywords, filters={'location': ARGS.location,
-                                                                   'price_min': int(ARGS.price_min),
-                                                                   'price_max': int(ARGS.price_max),
-                                                                   'sort_by_price': ARGS.sort_by_price,
-                                                                   'search_in_title': ARGS.search_in_title})
+        LBC.display_search(ARGS.keywords, filters={'category': ARGS.category,
+                                                   'location': ARGS.location,
+                                                   'price_max': int(ARGS.price_max),
+                                                   'price_min': int(ARGS.price_min),
+                                                   'property_type': int(ARGS.property_type),
+                                                   'uncolor': int(ARGS.uncolor),
+                                                   'region': int(ARGS.region),
+                                                   'room_max': int(ARGS.room_max),
+                                                   'room_min': int(ARGS.room_min),
+                                                   'search_in_title': ARGS.search_in_title,
+                                                   'sort_by_price': ARGS.sort_by_price,
+                                                   'search_in_title': ARGS.search_in_title})
