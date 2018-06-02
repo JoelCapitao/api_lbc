@@ -385,6 +385,6 @@ if __name__ == '__main__':
                                                    'room_min': int(ARGS.room_min),
                                                    'search_in_title': ARGS.search_in_title,
                                                    'sort_by_price': ARGS.sort_by_price,
-                                                   'suface_max': ARGS.surface_max,
-                                                   'surface_min': ARGS.suface_min,
+                                                   'surface_max': ARGS.surface_max,
+                                                   'surface_min': ARGS.surface_min,
                                                    'uncolor': int(ARGS.uncolor)})
