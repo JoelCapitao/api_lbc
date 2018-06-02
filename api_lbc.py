@@ -290,14 +290,20 @@ class LeBonCoin(object):
                                        self.colors['native']))
             print('  Key: %s:%s' % (ads_list[i]['id'], ads_list[i]['category']))
 
-    def display_search(self, category, keywords, filters=None):
+    def display_search(self, keywords, filters=None):
         """ Display the results of the search. """
-        filters_dict = {'region': 'ile_de_france',
+        filters_dict = {'category': None,
                         'location': None,
-                        'price_min': 0,
                         'price_max': 999999,
+                        'price_min': 0,
+                        'property_type': None,
+                        'region': None,
+                        'room_max': None,
+                        'room_min': None,
+                        'search_in_title': False,
                         'sort_by_price': False,
-                        'search_in_title': False}
+                        'surface_max': None,
+                        'surface_min': None}
         filters_dict.update(filters)
         ads_list = {}
         for page in range(3):
