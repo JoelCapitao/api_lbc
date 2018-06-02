@@ -191,13 +191,13 @@ class LeBonCoin(object):
 
     def get_search(self, keywords, filters, page_num=1):
         """ Search something on LBC. """
-        if filters['localisation'] is None:
-            localisation_url = ''
+        if filters['location'] is None:
+            location_url = ''
         else:
-            localisation_url = '%s/' % filters['localisation']
+            location_url = '%s/' % filters['location']
         self.download_web_page(
             'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s&o=%s'
-            % (filters['region'], localisation_url, int(filters['sort_by_price']),
+            % (filters['region'], location_url, int(filters['sort_by_price']),
                keywords, int(filters['search_in_title']), page_num))
 
         # Generate a soup
@@ -293,7 +293,7 @@ class LeBonCoin(object):
     def display_search(self, keywords, filters=None):
         """ Display the results of the search. """
         filters_dict = {'region': 'ile_de_france',
-                        'localisation': None,
+                        'location': None,
                         'price_min': 0,
                         'price_max': 999999,
                         'sort_by_price': False,
@@ -338,8 +338,8 @@ if __name__ == '__main__':
     # A search command
     SEARCH_PARSER = SUBPARSERS.add_parser('search', help='Search ads')
     SEARCH_PARSER.add_argument('keywords', action='store', help='Keywords of the search')
-    SEARCH_PARSER.add_argument('--localisation', '-l', default=None, action='store',
-                               help='Choose a particular localisation')
+    SEARCH_PARSER.add_argument('--location', '-l', default=None, action='store',
+                               help='Choose a particular location')
     SEARCH_PARSER.add_argument('--price-max', default=999999, action='store',
                                help='Set a max price')
     SEARCH_PARSER.add_argument('--price-min', default=0, action='store',
@@ -361,7 +361,7 @@ if __name__ == '__main__':
     elif argv[1] == 'ad':
         LBC.display_ad(ARGS.key)
     elif argv[1] == 'search':
-        LBC.display_search(ARGS.keywords, filters={'localisation': ARGS.localisation,
+        LBC.display_search(ARGS.keywords, filters={'location': ARGS.location,
                                                    'price_min': int(ARGS.price_min),
                                                    'price_max': int(ARGS.price_max),
                                                    'sort_by_price': ARGS.sort_by_price,
