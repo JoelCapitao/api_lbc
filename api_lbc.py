@@ -335,7 +335,7 @@ if __name__ == '__main__':
     AD_PARSER.add_argument('--uncolor', default=False, action='store_true',
                            help='Disable coloration')
 
-    # A delete command
+    # A search command
     SEARCH_PARSER = SUBPARSERS.add_parser('search', help='Search ads')
     SEARCH_PARSER.add_argument('keywords', action='store', help='Keywords of the search')
     SEARCH_PARSER.add_argument('--localisation', '-l', default=None, action='store',
