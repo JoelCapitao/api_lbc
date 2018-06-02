@@ -337,6 +337,7 @@ if __name__ == '__main__':
 
     # A search command
     SEARCH_PARSER = SUBPARSERS.add_parser('search', help='Search ads')
+    SEARCH_PARSER.add_argument('category', action='store', help='Category of the search')
     SEARCH_PARSER.add_argument('keywords', action='store', help='Keywords of the search')
     SEARCH_PARSER.add_argument('--location', '-l', default=None, action='store',
                                help='Choose a particular location')
@@ -361,8 +362,8 @@ if __name__ == '__main__':
     elif argv[1] == 'ad':
         LBC.display_ad(ARGS.key)
     elif argv[1] == 'search':
-        LBC.display_search(ARGS.keywords, filters={'location': ARGS.location,
-                                                   'price_min': int(ARGS.price_min),
-                                                   'price_max': int(ARGS.price_max),
-                                                   'sort_by_price': ARGS.sort_by_price,
-                                                   'search_in_title': ARGS.search_in_title})
+        LBC.display_search(ARGS.category, ARGS.keywords, filters={'location': ARGS.location,
+                                                                   'price_min': int(ARGS.price_min),
+                                                                   'price_max': int(ARGS.price_max),
+                                                                   'sort_by_price': ARGS.sort_by_price,
+                                                                   'search_in_title': ARGS.search_in_title})
