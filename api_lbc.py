@@ -191,14 +191,27 @@ class LeBonCoin(object):
 
     def get_search(self, keywords, filters, page_num=1):
         """ Search something on LBC. """
-        if filters['location'] is None:
-            location_url = ''
+
+        if filters['category'] == 'ventes_immobilieres':
+            region = '' if filters['region'] is None else '%s/' % filters['region']
+            location_url = '' if filters['location'] is None else filters['location']
+            price_min = '' if filters['price_min'] is None else '&ps=%s' % (filters['price_min'] / 25000)
+            price_max = '' if filters['price_max'] is None else '&pe=%s' % (filters['price_max'] / 25000)
+            surface_min = '' if filters['surface_min'] is None else '&sqs=%s' % filters['surface_min']
+            surface_max = '' if filters['surface_max'] is None else '&sqe=%s' % filters['surface_max']
+            room_min = '' if filters['room_min'] is None else '&ros=%s' % filters['room_min']
+            room_max = '' if filters['room_max'] is None else '&roe=%s' % filters['room_max']
+            property_type = '&ret=2'
+
+            self.download_web_page(
+                'https://www.leboncoin.fr/ventes_immobilieres/offres/%s?th=1&location=%s%s%s%s%s%s%s%s'
+                % (region, location_url, price_min, price_max, surface_min, surface_max, room_min,
+                   room_max, property_type))
         else:
-            location_url = '%s/' % filters['location']
-        self.download_web_page(
-            'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s&o=%s'
-            % (filters['region'], location_url, int(filters['sort_by_price']),
-               keywords, int(filters['search_in_title']), page_num))
+            self.download_web_page(
+                'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s&o=%s'
+                % (filters['region'], location_url, int(filters['sort_by_price']),
+                   keywords, int(filters['search_in_title']), page_num))
 
         # Generate a soup
         with open(self.tmp_html_path, 'r') as tmp_html_file:
@@ -352,21 +365,21 @@ if __name__ == '__main__':
                                help='Set a max price')
     SEARCH_PARSER.add_argument('--price-min', default=0, action='store',
                                help='Set a in price')
-    SEARCH_PARSER.add_argument('--property-type', default=False, action='store_true',
+    SEARCH_PARSER.add_argument('--property-type', default=None, action='store_true',
                                help='Set the property type')
-    SEARCH_PARSER.add_argument('--region', default=False, action='store_true',
+    SEARCH_PARSER.add_argument('--region', default='ile_de_france', action='store_true',
                                help='Set the region')
-    SEARCH_PARSER.add_argument('--room-max', default=False, action='store_true',
+    SEARCH_PARSER.add_argument('--room-max', default=None, action='store_true',
                                help='Set the maximum number of rooms')
-    SEARCH_PARSER.add_argument('--room-min', default=False, action='store_true',
+    SEARCH_PARSER.add_argument('--room-min', default=None, action='store_true',
                                help='Set the minimum number of rooms')
     SEARCH_PARSER.add_argument('--search-in-title', default=False, action='store_true',
                                help='Search keywords only in the ad\'s title')
     SEARCH_PARSER.add_argument('--sort-by-price', default=False, action='store_true',
                                help='BETA: Sort list by price')
-    SEARCH_PARSER.add_argument('--surface-max', default=False, action='store_true',
+    SEARCH_PARSER.add_argument('--surface-max', default=None, action='store_true',
                                help='Set a max surface')
-    SEARCH_PARSER.add_argument('--surface-min', default=False, action='store_true',
+    SEARCH_PARSER.add_argument('--surface-min', default=None, action='store_true',
                                help='Set a min surface')
     SEARCH_PARSER.add_argument('--uncolor', default=False, action='store_true',
                                help='Disable coloration')
@@ -385,10 +398,10 @@ if __name__ == '__main__':
                                                    'location': ARGS.location,
                                                    'price_max': int(ARGS.price_max),
                                                    'price_min': int(ARGS.price_min),
-                                                   'property_type': int(ARGS.property_type),
-                                                   'region': int(ARGS.region),
-                                                   'room_max': int(ARGS.room_max),
-                                                   'room_min': int(ARGS.room_min),
+                                                   'property_type': ARGS.property_type,
+                                                   'region': ARGS.region,
+                                                   'room_max': ARGS.room_max,
+                                                   'room_min': ARGS.room_min,
                                                    'search_in_title': ARGS.search_in_title,
                                                    'sort_by_price': ARGS.sort_by_price,
                                                    'surface_max': ARGS.surface_max,
