@@ -214,8 +214,8 @@ class LeBonCoin(object):
                 category_option_in_url += option
 
             self.download_web_page(
-                'https://www.leboncoin.fr/ventes_immobilieres/offres/%s?th=1&location=%s%s'
-                % (region, location_url, category_option_in_url))
+                'https://www.leboncoin.fr/%s/offres/%s?th=1&location=%s%s'
+                % (filters['category'], region, location_url, category_option_in_url))
         else:
             self.download_web_page(
                 'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s&o=%s'
@@ -331,6 +331,8 @@ class LeBonCoin(object):
                         'price_min': 0,
                         'property_type': None,
                         'region': None,
+                        'rent_max': None,
+                        'rent_max': None,
                         'room_max': None,
                         'room_min': None,
                         'search_in_title': False,
@@ -389,6 +391,10 @@ if __name__ == '__main__':
                                help='Set the property type')
     SEARCH_PARSER.add_argument('--region', default='ile_de_france', action='store',
                                help='Set the region')
+    SEARCH_PARSER.add_argument('--rent-max', default=None, action='store',
+                               help='Set the maximum rent price')
+    SEARCH_PARSER.add_argument('--rent-min', default=None, action='store',
+                               help='Set the minimum rent price')
     SEARCH_PARSER.add_argument('--room-max', default=None, action='store',
                                help='Set the maximum number of rooms')
     SEARCH_PARSER.add_argument('--room-min', default=None, action='store',
@@ -420,6 +426,8 @@ if __name__ == '__main__':
                                                    'price_min': int(ARGS.price_min),
                                                    'property_type': ARGS.property_type,
                                                    'region': ARGS.region,
+                                                   'rent_max': ARGS.room_max,
+                                                   'rent_min': ARGS.room_min,
                                                    'room_max': ARGS.room_max,
                                                    'room_min': ARGS.room_min,
                                                    'search_in_title': ARGS.search_in_title,
