@@ -42,9 +42,14 @@ optional arguments:
 
 
 # search
-usage: api_lbc.py search [-h] [--location LOCATION]
+usage: api_lbc.py search [-h] [--category CATEGORY] [--location LOCATION]
                          [--price-max PRICE_MAX] [--price-min PRICE_MIN]
-                         [--uncolor] [--search-in-title] [--sort-by-price]
+                         [--property-type PROPERTY_TYPE] [--region REGION]
+                         [--rent-max RENT_MAX] [--rent-min RENT_MIN]
+                         [--room-max ROOM_MAX] [--room-min ROOM_MIN]
+                         [--search-in-title] [--sort-by-price]
+                         [--surface-max SURFACE_MAX]
+                         [--surface-min SURFACE_MIN] [--uncolor]
                          keywords
 
 positional arguments:
@@ -52,15 +57,28 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  --category CATEGORY, -c CATEGORY
+                        Set the category of the search
   --location LOCATION, -l LOCATION
                         Choose a particular location
   --price-max PRICE_MAX
                         Set a max price
   --price-min PRICE_MIN
                         Set a in price
-  --uncolor             Disable coloration
+  --property-type PROPERTY_TYPE
+                        Set the property type
+  --region REGION       Set the region
+  --rent-max RENT_MAX   Set the maximum rent price
+  --rent-min RENT_MIN   Set the minimum rent price
+  --room-max ROOM_MAX   Set the maximum number of rooms
+  --room-min ROOM_MIN   Set the minimum number of rooms
   --search-in-title     Search keywords only in the ad's title
   --sort-by-price       BETA: Sort list by price
+  --surface-max SURFACE_MAX
+                        Set a max surface
+  --surface-min SURFACE_MIN
+                        Set a min surface
+  --uncolor             Disable coloration
 ```
 
 ## Examples
