@@ -199,6 +199,7 @@ class LeBonCoin(object):
             category_option_in_url = ''
             region = '' if filters['region'] is None else '%s/' % filters['region']
             location_url = '' if filters['location'] is None else filters['location']
+            keywords = '' if keywords == '' else '&q=%s' % keywords
 
             for category_option_name in all_options[filters['category']].keys():
                 if filters[category_option_name] is None:
@@ -211,9 +212,12 @@ class LeBonCoin(object):
                                             )
                 category_option_in_url += option
 
+            category_option_in_url += '&sp=%s' % int(filters['sort_by_price'])
+
             self.download_web_page(
-                'https://www.leboncoin.fr/%s/offres/%s?th=1&location=%s%s'
-                % (filters['category'], region, location_url, category_option_in_url))
+                'https://www.leboncoin.fr/%s/offres/%s?th=1&location=%s%s%s'
+                % (filters['category'], region, location_url, keywords,
+                   category_option_in_url))
         else:
             self.download_web_page(
                 'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s&o=%s'
