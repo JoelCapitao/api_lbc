@@ -111,7 +111,6 @@ class LeBonCoin(object):
     def download_web_page(self, url):
         """ This method download a web page and store the informations
         in self.tmp_html_path """
-        print(url)
         req_url = self.profile['session'].get(url)
         if req_url.status_code == 404:
             return False
@@ -200,7 +199,6 @@ class LeBonCoin(object):
             category_option_in_url = ''
             region = '' if filters['region'] is None else '%s/' % filters['region']
             location_url = '' if filters['location'] is None else filters['location']
-
 
             for category_option_name in all_options[filters['category']].keys():
                 if filters[category_option_name] is None:
