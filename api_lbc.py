@@ -252,12 +252,14 @@ class LeBonCoin(object):
             all_options = jload(json_file)
         values_available = all_options[category][option_name]['values_available']
         first_index = all_options[category][option_name]['first_index']
-        if str(option_value) in values_available:
-            index = first_index + values_available.index(str(option_value))
-        else:
-            print('For "%s" option you must choose a value in this list: [%s]' % (option_name, ', '.join(map(str, values_available))))
-            exit(0)
-        return '&%s=%s' % (all_options[category][option_name]['id'], index)
+        if values_available:
+            if str(option_value) in values_available:
+                index = first_index + values_available.index(str(option_value))
+            else:
+                print('For "%s" option you must choose a value in this list: [%s]' % (option_name, ', '.join(map(str, values_available))))
+                exit(0)
+            return '&%s=%s' % (all_options[category][option_name]['id'], index)
+        return '&%s=%s' % (all_options[category][option_name]['id'], option_value)
 
     ###################
     ##    DISPLAY    ##
@@ -424,8 +426,8 @@ if __name__ == '__main__':
                                                    'price_min': int(ARGS.price_min),
                                                    'property_type': ARGS.property_type,
                                                    'region': ARGS.region,
-                                                   'rent_max': ARGS.room_max,
-                                                   'rent_min': ARGS.room_min,
+                                                   'rent_max': ARGS.rent_max,
+                                                   'rent_min': ARGS.rent_min,
                                                    'room_max': ARGS.room_max,
                                                    'room_min': ARGS.room_min,
                                                    'search_in_title': ARGS.search_in_title,
