@@ -193,21 +193,29 @@ class LeBonCoin(object):
 
     def get_search(self, keywords, filters, page_num=1):
         """ Search something on LBC. """
-        if filters['category'] == 'ventes_immobilieres':
+        with open('data.json') as json_file:
+            all_options = jload(json_file)
+
+        if filters['category'] in all_options.keys():
+            category_option_in_url = ''
             region = '' if filters['region'] is None else '%s/' % filters['region']
             location_url = '' if filters['location'] is None else filters['location']
-            price_min = '' if filters['price_min'] is None else self.get_option_index_by_name_and_value('price_min', filters['price_min'])
-            price_max = '' if filters['price_max'] is None else self.get_option_index_by_name_and_value('price_max', filters['price_max'])
-            surface_min = '' if filters['surface_min'] is None else self.get_option_index_by_name_and_value('surface_min', filters['surface_min'])
-            surface_max = '' if filters['surface_max'] is None else self.get_option_index_by_name_and_value('surface_max', filters['surface_max'])
-            room_min = '' if filters['room_min'] is None else self.get_option_index_by_name_and_value('room_min', filters['room_min'])
-            room_max = '' if filters['room_max'] is None else self.get_option_index_by_name_and_value('room_max', filters['room_max'])
-            property_type = '' if filters['property_type'] is None else self.get_option_index_by_name_and_value('property_type', filters['property_type'])
+
+
+            for category_option_name in all_options[filters['category']].keys():
+                if filters[category_option_name] is None:
+                    option = ''
+                else:
+                    option = self.get_option_index_by_category_name_and_value(
+                                                    filters['category'],
+                                                    category_option_name,
+                                                    filters[category_option_name]
+                                            )
+                category_option_in_url += option
 
             self.download_web_page(
-                'https://www.leboncoin.fr/ventes_immobilieres/offres/%s?th=1&location=%s%s%s%s%s%s%s%s'
-                % (region, location_url, price_min, price_max, surface_min, surface_max, room_min,
-                   room_max, property_type))
+                'https://www.leboncoin.fr/ventes_immobilieres/offres/%s?th=1&location=%s%s'
+                % (region, location_url, category_option_in_url))
         else:
             self.download_web_page(
                 'https://www.leboncoin.fr/annonces/offres/%s/%s?sp=%s&q=%s&it=%s&o=%s'
@@ -241,21 +249,17 @@ class LeBonCoin(object):
 
         return ads_list
 
-    def get_option_index_by_name_and_value(self, name, value):
+    def get_option_index_by_category_name_and_value(self, category, option_name, option_value):
         with open('data.json') as json_file:
             all_options = jload(json_file)
-        try:
-            option_name, sub_option = name.split('_')
-        except:
-            option_name, sub_option = name, None
-        values_available = all_options[option_name]['values_available']
-        first_index = all_options[option_name]['first_index']
-        if str(value) in values_available:
-            index = first_index + values_available.index(str(value))
+        values_available = all_options[category][option_name]['values_available']
+        first_index = all_options[category][option_name]['first_index']
+        if str(option_value) in values_available:
+            index = first_index + values_available.index(str(option_value))
         else:
             print('For "%s" option you must choose a value in this list: [%s]' % (option_name, ', '.join(map(str, values_available))))
             exit(0)
-        return '&%s=%s' % (all_options[option_name][sub_option], index)
+        return '&%s=%s' % (all_options[category][option_name]['id'], index)
 
     ###################
     ##    DISPLAY    ##
