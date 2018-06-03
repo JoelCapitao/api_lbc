@@ -10,6 +10,7 @@ from datetime import datetime
 from getpass import getpass
 from os import remove, path
 from pickle import load, dump
+from json import load as jload
 from sys import argv
 from time import time, mktime
 # Related third party imports
@@ -110,6 +111,7 @@ class LeBonCoin(object):
     def download_web_page(self, url):
         """ This method download a web page and store the informations
         in self.tmp_html_path """
+        print(url)
         req_url = self.profile['session'].get(url)
         if req_url.status_code == 404:
             return False
@@ -191,17 +193,16 @@ class LeBonCoin(object):
 
     def get_search(self, keywords, filters, page_num=1):
         """ Search something on LBC. """
-
         if filters['category'] == 'ventes_immobilieres':
             region = '' if filters['region'] is None else '%s/' % filters['region']
             location_url = '' if filters['location'] is None else filters['location']
-            price_min = '' if filters['price_min'] is None else '&ps=%s' % (filters['price_min'] / 25000)
-            price_max = '' if filters['price_max'] is None else '&pe=%s' % (filters['price_max'] / 25000)
-            surface_min = '' if filters['surface_min'] is None else '&sqs=%s' % filters['surface_min']
-            surface_max = '' if filters['surface_max'] is None else '&sqe=%s' % filters['surface_max']
-            room_min = '' if filters['room_min'] is None else '&ros=%s' % filters['room_min']
-            room_max = '' if filters['room_max'] is None else '&roe=%s' % filters['room_max']
-            property_type = '' if filters['property_type'] is None else '&ret=2'
+            price_min = '' if filters['price_min'] is None else self.get_option_index_by_name_and_value('price_min', filters['price_min'])
+            price_max = '' if filters['price_max'] is None else self.get_option_index_by_name_and_value('price_max', filters['price_max'])
+            surface_min = '' if filters['surface_min'] is None else self.get_option_index_by_name_and_value('surface_min', filters['surface_min'])
+            surface_max = '' if filters['surface_max'] is None else self.get_option_index_by_name_and_value('surface_max', filters['surface_max'])
+            room_min = '' if filters['room_min'] is None else self.get_option_index_by_name_and_value('room_min', filters['room_min'])
+            room_max = '' if filters['room_max'] is None else self.get_option_index_by_name_and_value('room_max', filters['room_max'])
+            property_type = '' if filters['property_type'] is None else self.get_option_index_by_name_and_value('property_type', filters['property_type'])
 
             self.download_web_page(
                 'https://www.leboncoin.fr/ventes_immobilieres/offres/%s?th=1&location=%s%s%s%s%s%s%s%s'
@@ -240,6 +241,21 @@ class LeBonCoin(object):
 
         return ads_list
 
+    def get_option_index_by_name_and_value(self, name, value):
+        with open('data.json') as json_file:
+            all_options = jload(json_file)
+        try:
+            option_name, sub_option = name.split('_')
+        except:
+            option_name, sub_option = name, None
+        values_available = all_options[option_name]['values_available']
+        first_index = all_options[option_name]['first_index']
+        if str(value) in values_available:
+            index = first_index + values_available.index(str(value))
+        else:
+            print('For "%s" option you must choose a value in this list: [%s]' % (option_name, ', '.join(map(str, values_available))))
+            exit(0)
+        return '&%s=%s' % (all_options[option_name][sub_option], index)
 
     ###################
     ##    DISPLAY    ##
@@ -365,21 +381,21 @@ if __name__ == '__main__':
                                help='Set a max price')
     SEARCH_PARSER.add_argument('--price-min', default=0, action='store',
                                help='Set a in price')
-    SEARCH_PARSER.add_argument('--property-type', default=None, action='store_true',
+    SEARCH_PARSER.add_argument('--property-type', default=None, action='store',
                                help='Set the property type')
-    SEARCH_PARSER.add_argument('--region', default='ile_de_france', action='store_true',
+    SEARCH_PARSER.add_argument('--region', default='ile_de_france', action='store',
                                help='Set the region')
-    SEARCH_PARSER.add_argument('--room-max', default=None, action='store_true',
+    SEARCH_PARSER.add_argument('--room-max', default=None, action='store',
                                help='Set the maximum number of rooms')
-    SEARCH_PARSER.add_argument('--room-min', default=None, action='store_true',
+    SEARCH_PARSER.add_argument('--room-min', default=None, action='store',
                                help='Set the minimum number of rooms')
     SEARCH_PARSER.add_argument('--search-in-title', default=False, action='store_true',
                                help='Search keywords only in the ad\'s title')
     SEARCH_PARSER.add_argument('--sort-by-price', default=False, action='store_true',
                                help='BETA: Sort list by price')
-    SEARCH_PARSER.add_argument('--surface-max', default=None, action='store_true',
+    SEARCH_PARSER.add_argument('--surface-max', default=None, action='store',
                                help='Set a max surface')
-    SEARCH_PARSER.add_argument('--surface-min', default=None, action='store_true',
+    SEARCH_PARSER.add_argument('--surface-min', default=None, action='store',
                                help='Set a min surface')
     SEARCH_PARSER.add_argument('--uncolor', default=False, action='store_true',
                                help='Disable coloration')
