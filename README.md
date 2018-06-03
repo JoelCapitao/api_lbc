@@ -80,4 +80,6 @@ python api_lbc.py search "Vélo VTT" --location paris
 
 # Search more complex
 python api_lbc.py search --location paris "Vélo VTT" --price-max 500 --price-min 100 --search-in-title
+python api_lbc.py search "studio" --category locations --location Paris --property-type=appartement --rent-min=500 --rent-max=700 --sort-by-price
+python api_lbc.py search "studio" --category ventes_immobilieres --location Paris --property-type=appartement --price-min=150000 --price-max=300000 --room-min=3 --room-max=4
 ```
