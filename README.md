@@ -42,7 +42,7 @@ optional arguments:
 
 
 # search
-usage: api_lbc.py search [-h] [--localisation LOCALISATION]
+usage: api_lbc.py search [-h] [--location LOCATION]
                          [--price-max PRICE_MAX] [--price-min PRICE_MIN]
                          [--uncolor] [--search-in-title] [--sort-by-price]
                          keywords
@@ -52,8 +52,8 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  --localisation LOCALISATION, -l LOCALISATION
-                        Choose a particular localisation
+  --location LOCATION, -l LOCATION
+                        Choose a particular location
   --price-max PRICE_MAX
                         Set a max price
   --price-min PRICE_MIN
@@ -75,8 +75,9 @@ python api_lbc.py ad 1048998842:consoles_jeux_video
 
 # Search an ad
 python api_lbc.py search "Vélo VTT"
-python api_lbc.py search "Vélo VTT" --localisation paris
+python api_lbc.py search "Vélo VTT" --location paris
+
 
 # Search more complex
-python api_lbc.py search --localisation paris "Vélo VTT" --price-max 500 --price-min 100 --search-in-title
+python api_lbc.py search --location paris "Vélo VTT" --price-max 500 --price-min 100 --search-in-title
 ```
